@@ -1,0 +1,804 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".cs" #>
+<#@ Assembly Name="System.Core" #>
+<#@ Import Namespace="System" #>
+<#@ Import Namespace="System.Collections.Generic" #>
+<#@ Import Namespace="System.Linq" #>
+<#@ Import Namespace="System.Runtime.InteropServices" #>
+
+// Copyright (C) 2018 Luca Piccioni
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
+using System;
+
+using NUnit.Framework;
+
+// ReSharper disable InconsistentNaming
+// ReSharper disable RedundantCast
+// ReSharper disable ReturnValueOfPureMethodIsNotUsed
+// ReSharper disable ObjectCreationAsStatement
+// ReSharper disable SuspiciousTypeConversion.Global
+// ReSharper disable RedundantAssignment
+
+namespace OpenGL.Test
+{
+<#
+	string[] underlyingType =	new[] { "float", "double" };
+	string[] postfixes =		new[] { "f",     "d"};
+	string[] zeroes =			new[] { "0.0f",  "0.0" };
+	string[] ones =				new[] { "1.0f",  "1.0",     null };
+	string[] matrixBaseTypes =	new[] { "float", "double" };
+	string[] columnTypeComps =	new[] { "x", "y", "z", "w" };
+	string[] literals		 =	new[] { "f", "" };
+	string[] vliterals		 =	new[] { "f", "d" };
+	string[] epsilons		 =	new[] { "1e-5f", "1e-10" };
+	string[] epsilonsLP		 =	new[] { "1e-2f", "1e-2" };
+
+	for (int i = 0; i < 2; i++) for (int c = 2; c <= 4; c++) for (int r = 2; r <= 4; r++) {
+		string className = String.Format("Matrix{0}x{1}{2}", c, r, postfixes[i]);
+		string loworderClassName = String.Format("Matrix{0}x{1}{2}", c - 1, r - 1, postfixes[i]);
+		string highorderClassName = String.Format("Matrix{0}x{1}{2}", c + 1, r + 1, postfixes[i]);
+		string matrixBaseType = matrixBaseTypes[i];
+		string columnType = String.Format("Vertex{0}{1}", r, postfixes[i]);
+		string rowType = String.Format("Vertex{0}{1}", c, postfixes[i]);
+		string matrixType = "Matrix";
+		string one = ones[i], zero = zeroes[i];
+		string tranposedClassName = String.Format("Matrix{0}x{1}{2}", r, c, postfixes[i]);
+		string literal = literals[i];
+		string epsilon = epsilons[i], epsilonLP = epsilonsLP[i];
+		string vertex4 = "Vertex4" + vliterals[i];
+		string vertex3 = "Vertex3" + vliterals[i];
+#>
+	[TestFixture, Category("Math")]
+	internal class <#= className #>Test : TestBase
+	{
+		#region Constructors
+
+		[Test]
+		public void <#= className #>_Constructor1()
+		{
+			<#= className #> m = new <#= className #>(
+<# for (int c1 = 0, idx = 0; c1 < c; c1++) { #>
+				<# for (int r1 = 0; r1 < r; r1++, idx++) { #>(<#= matrixBaseType #>)<#= idx #><# if (c1 < c - 1 || r1 < r - 1) { #>, <# } #><# } #>
+
+<# } #>
+			);
+
+			for (uint c = 0, idx = 0; c < <#= c #>; c++) for (uint r = 0; r < <#= r #>; r++, idx++)
+				Assert.That(m[c, r], Is.EqualTo(idx).Within(<#= epsilon #>));
+		}
+
+		[Test]
+		public void <#= className #>_Constructor2()
+		{
+			Assert.Throws<ArgumentNullException>(() => new <#= className #>(null, 0));
+			Assert.Throws<ArgumentException>(() => new <#= className #>(new[] { 
+<# for (int c1 = 0, idx = 0; c1 < c; c1++) { #>
+				<# for (int r1 = 0; r1 < r; r1++, idx++) { #>(<#= matrixBaseType #>)<#= idx #><# if (c1 < c - 1 || r1 < r - 1) { #>, <# } #><# } #>
+
+<# } #>
+			} , 1));
+
+			<#= className #> m = new <#= className #>(new[] {
+<# for (int c1 = 0, idx = 0; c1 < c; c1++) { #>
+				<# for (int r1 = 0; r1 < r; r1++, idx++) { #>(<#= matrixBaseType #>)<#= idx #><# if (c1 < c - 1 || r1 < r - 1) { #>, <# } #><# } #>
+
+<# } #>
+			});
+
+			for (uint c = 0, idx = 0; c < <#= c #>; c++) for (uint r = 0; r < <#= r #>; r++, idx++)
+				Assert.That(m[c, r], Is.EqualTo(idx).Within(<#= epsilon #>));
+		}
+
+		[Test]
+		public void <#= className #>_Constructor3()
+		{
+			<#= className #> m1 = CreateRandomMatrix();
+			<#= className #> m2 = new <#= className #>(m1);
+
+			for (uint c = 0; c < <#= c #>; c++) for (uint r = 0; r < <#= r #>; r++)
+				Assert.That(m1[c, r], Is.EqualTo(m2[c, r]).Within(<#= epsilon #>));
+		}
+
+<# if (c == r && c == 3) { #>
+		[Test]
+		public void <#= className #>_Constructor4()
+		{
+			Matrix4x4<#= postfixes[i] #> m = new Matrix4x4<#= postfixes[i] #>();
+			<#= className #> c;
+
+			Assert.Throws<ArgumentOutOfRangeException>(() => c = new <#= className #>(m, 4, 3));
+			Assert.Throws<ArgumentOutOfRangeException>(() => c = new <#= className #>(m, 3, 4));
+		}
+
+<# } #>
+		#endregion
+
+		#region Columns & Rows
+
+		[Test]
+		public void <#= className #>_Columns()
+		{
+			<#= className #> m = CreateRandomMatrix();
+
+<# for (int j = 0; j < c; j++) { #>
+			<#= columnType #> c<#= j #> = m.Column<#= j #>;
+<# for (int k = 0; k < r; k++) { #>
+			Assert.AreEqual(c<#= j #>.<#= columnTypeComps[k] #>, m[<#= j #>, <#= k #>]);
+<# } #>
+
+<# } #>
+		}
+
+		[Test]
+		public void <#= className #>_Rows()
+		{
+			<#= className #> m = CreateRandomMatrix();
+
+<# for (int k = 0; k < r; k++) { #>
+			<#= rowType #> r<#= k#> = m.Row<#= k #>;
+<# } #>
+		}
+
+		#endregion
+
+		#region Operators
+
+		[Test]
+		public void <#= className #>_Accessor()
+		{
+			<#= className #> m = new <#= className #>();
+			<#= matrixBaseType #> r;
+
+<# for (int c1 = 0; c1 < c; c1++) for (int r1 = 0; r1 < r; r1++) { #>
+			r = Next(0.0<#= literal #>, 1.0<#= literal #>);
+			m[<#= c1 #>, <#= r1 #>] = r;
+			Assert.That(r, Is.EqualTo(m[<#= c1 #>, <#= r1 #>]).Within(<#= epsilon #>));
+<# } #>
+
+<# for (int c1 = 0; c1 < c; c1++) { #>
+			Assert.Throws<ArgumentOutOfRangeException>(() => m[<#= c1 #>, <#= r #>] = <#= zero #>);
+			Assert.Throws<ArgumentOutOfRangeException>(() => r = m[<#= c1 #>, <#= r #>]);
+<# } #>
+<# for (int r1 = 0; r1 < r; r1++) { #>
+			Assert.Throws<ArgumentOutOfRangeException>(() => m[<#= c #>, <#= r1 #>] = <#= zero #>);
+			Assert.Throws<ArgumentOutOfRangeException>(() => r = m[<#= c #>, <#= r1 #>]);
+<# } #>
+		}
+
+		[Test]
+		public void <#= className #>_MultiplyScalar()
+		{
+			<#= className #> m = CreateSequenceMatrix();
+
+			m = m * 2.0<#= literal #>;
+
+			<#= matrixBaseType #> idx = 0.0f;
+			for (uint c = 0; c < <#= c #>; c++) for (uint r = 0; r < <#= r #>; r++, idx += 1.0<#= literal #>)
+				Assert.That(idx * 2.0<#= literal #>, Is.EqualTo(m[c, r]).Within(<#= epsilon #>));
+		}
+
+<# if (c == r) { #>
+		[Test]
+		public void <#= className #>_Multiply<#= columnType #>()
+		{
+			<#= className #> m = CreateSequenceMatrix();
+			<#= columnType #> v = <#= columnType #>.Zero;
+			<#= columnType #> r = m * v;
+		}
+
+		[Test]
+		public void <#= className #>_Multiply<#= className #>()
+		{
+			<#= className #> m1 = CreateSequenceMatrix();
+			<#= className #> m2 = CreateSequenceMatrix();
+			<#= className #> r = m1 * m2;
+		}
+
+<# } #>
+		#endregion
+
+		#region Cast Operators
+
+		[Test]
+		public void <#= className #>_CastToArray()
+		{
+			<#= className #> m = CreateSequenceMatrix();
+			<#= matrixBaseType #>[] mArray = (<#= matrixBaseType #>[])m;
+
+			Assert.IsNotNull(mArray);
+			Assert.AreEqual(mArray.Length, <#= c * r #>);
+			for (uint c = 0, idx = 0; c < <#= c #>; c++) for (uint r = 0; r < <#= r #>; r++, idx++)
+				Assert.That(mArray[idx], Is.EqualTo(m[c, r]).Within(<#= epsilon #>));
+		}
+
+<#
+		string castMatrixType = $"Matrix{c}x{r}" + ((matrixBaseType == "float") ? "d" : "f");
+		string castMatrixModifier = (matrixBaseType == "double") ? "explicit" : "implicit";
+		string castMatrixOp = (matrixBaseType == "double") ? "(float)" : "";
+#>
+		[Test]
+		public void <#= className #>_CastTo<#= castMatrixType #>()
+		{
+			<#= className #> m = CreateSequenceMatrix();
+			<#= castMatrixType #> mOther = (<#= castMatrixType #>)m;
+
+			for (uint c = 0, idx = 0; c < <#= c #>; c++) for (uint r = 0; r < <#= r #>; r++, idx++)
+				Assert.That(mOther[c, r], Is.EqualTo(m[c, r]).Within(1e-6<#= literal #>));
+		}
+
+		#endregion
+
+		#region Equality Operators
+
+		[Test]
+		public void <#= className #>_EqualityOperator()
+		{
+			<#= className #> m1 = CreateRandomMatrix();
+			<#= className #> m2 = m1;
+
+			Assert.IsTrue(m1 == m2);
+		}
+
+		[Test]
+		public void <#= className #>_InequalityOperator()
+		{
+			<#= className #> m1 = CreateRandomMatrix();
+			<#= className #> m2 = m1;
+
+			Assert.IsFalse(m1 != m2);
+		}
+
+		#endregion
+
+<# if (c == 4 && r == 4) { #>
+		#region Projections
+
+		[Test]
+		public void <#= className #>_Ortho()
+		{
+			Assert.Throws<ArgumentException>(() => <#= className #>.Ortho(0.0f, 0.0f, -1.0f, +1.0f, -1.0f, +1.0f));
+			Assert.Throws<ArgumentException>(() => <#= className #>.Ortho(-1.0f, +1.0f, 0.0f, 0.0f, -1.0f, +1.0f));
+			Assert.Throws<ArgumentException>(() => <#= className #>.Ortho(-1.0f, +1.0f, -1.0f, +1.0f, 0.0f, 0.0f));
+
+			Assert.DoesNotThrow(() => <#= className #>.Ortho(-1.0f, +1.0f, -1.0f, +1.0f, -1.0f, +1.0f));
+		}
+
+		[Test]
+		public void <#= className #>_Ortho2D()
+		{
+			Assert.Throws<ArgumentException>(() => <#= className #>.Ortho2D(0.0f, 0.0f, -1.0f, +1.0f));
+			Assert.Throws<ArgumentException>(() => <#= className #>.Ortho2D(-1.0f, +1.0f, 0.0f, 0.0f));
+
+			Assert.DoesNotThrow(() => <#= className #>.Ortho2D(-1.0f, +1.0f, -1.0f, +1.0f));
+		}
+
+		[Test]
+		public void <#= className #>_Frustrum()
+		{
+			Assert.Throws<ArgumentException>(() => <#= className #>.Frustrum(0.0f, 0.0f, -1.0f, +1.0f, -1.0f, +1.0f));
+			Assert.Throws<ArgumentException>(() => <#= className #>.Frustrum(-1.0f, +1.0f, 0.0f, 0.0f, -1.0f, +1.0f));
+			Assert.Throws<ArgumentException>(() => <#= className #>.Frustrum(-1.0f, +1.0f, -1.0f, +1.0f, 0.0f, 0.0f));
+
+			Assert.DoesNotThrow(() => <#= className #>.Frustrum(-1.0f, +1.0f, -1.0f, +1.0f, -1.0f, +1.0f));
+		}
+
+		[Test]
+		public void <#= className #>_PerspectiveSymmetric()
+		{
+			Assert.Throws<ArgumentOutOfRangeException>(() => <#= className #>.Perspective(-1.0f, 1.0f, 0.1f, 1000.0f));
+			Assert.Throws<ArgumentOutOfRangeException>(() => <#= className #>.Perspective(+180.0f, 1.0f, 0.1f, 1000.0f));
+			Assert.Throws<ArgumentOutOfRangeException>(() => <#= className #>.Perspective(+1.0f, 1.0f, 0.0f, 1000.0f));
+			Assert.Throws<ArgumentOutOfRangeException>(() => <#= className #>.Perspective(+1.0f, 1.0f, 10.0f, 1.0f));
+
+			Assert.DoesNotThrow(() => <#= className #>.Perspective(+1.0f, 1.0f, 1.0f, 10.0f));
+		}
+
+		[Test]
+		public void <#= className #>_PerspectiveAsymmetric()
+		{
+			Assert.Throws<ArgumentException>(() => <#= className #>.Perspective(0.0f, 0.0f, -1.0f, +1.0f, 0.1f, 1000.0f));
+			Assert.Throws<ArgumentException>(() => <#= className #>.Perspective(-1.0f, +1.0f, 0.0f, 0.0f, 0.1f, 1000.0f));
+			// Assert.Throws<ArgumentException>(() => <#= className #>.Perspective(-1.0f, +1.0f, -1.0f, +1.0f, 10.0f, 1.0f));
+
+			Assert.DoesNotThrow(() => <#= className #>.Perspective(-1.0f, +1.0f, -1.0f, +1.0f, 1.0f, 10.0f));
+		}
+
+		#endregion
+
+		#region View Model
+
+		[Test]
+		public void <#= className #>_Position()
+		{
+			<#= className #> m = <#= className #>.Identity;
+
+			Assert.AreEqual(<#= vertex3 #>.Zero, m.Position);
+			
+			m.Translate(1.0f, 0.0f, 0.0f);
+			Assert.AreEqual(<#= vertex3 #>.UnitX, m.Position);
+
+			m.Translate(0.0f, 1.0f, 0.0f);
+			Assert.AreEqual(<#= vertex3 #>.UnitX + <#= vertex3 #>.UnitY, m.Position);
+
+			m.Translate(0.0f, 0.0f, 1.0f);
+			Assert.AreEqual(<#= vertex3 #>.UnitX + <#= vertex3 #>.UnitY + <#= vertex3 #>.UnitZ, m.Position);
+		}
+
+		[Test]
+		public void <#= className #>_ForwardVector()
+		{
+			<#= className #> m = <#= className #>.Identity;
+
+			Assert.AreEqual(-<#= vertex3 #>.UnitZ, m.ForwardVector);
+
+			m.RotateY(-90.0f);
+			Assert.IsTrue(<#= vertex3 #>.UnitX.Equals(m.ForwardVector, <#= epsilon #>));
+		}
+
+		[Test]
+		public void <#= className #>_RightVector()
+		{
+			<#= className #> m = <#= className #>.Identity;
+
+			Assert.AreEqual(<#= vertex3 #>.UnitX, m.RightVector);
+
+			m.RotateY(-90.0f);
+			Assert.IsTrue(<#= vertex3 #>.UnitZ.Equals(m.RightVector, <#= epsilon #>));
+		}
+
+		[Test]
+		public void <#= className #>_UpVector()
+		{
+			<#= className #> m = <#= className #>.Identity;
+
+			Assert.AreEqual(<#= vertex3 #>.UnitY, m.UpVector);
+
+			m.RotateX(+90.0f);
+			Assert.IsTrue(<#= vertex3 #>.UnitZ.Equals(m.UpVector, <#= epsilon #>));
+		}
+
+		[Test]
+		public void <#= className #>_LookAt()
+		{
+			<#= className #> m = <#= className #>.LookAt(<#= vertex3 #>.UnitZ, <#= vertex3 #>.Zero, <#= vertex3 #>.UnitY);
+			Assert.AreEqual(-<#= vertex3 #>.UnitZ, m.ForwardVector);
+			Assert.AreEqual(<#= vertex3 #>.UnitY, m.UpVector);
+			Assert.AreEqual(<#= vertex3 #>.UnitX, m.RightVector);
+		}
+
+		[Test]
+		public void <#= className #>_LookAtDirection()
+		{
+			<#= className #> m = <#= className #>.LookAtDirection(<#= vertex3 #>.Zero, -<#= vertex3 #>.UnitZ, <#= vertex3 #>.UnitY);
+			Assert.AreEqual(-<#= vertex3 #>.UnitZ, m.ForwardVector);
+			Assert.AreEqual(<#= vertex3 #>.UnitY, m.UpVector);
+			Assert.AreEqual(<#= vertex3 #>.UnitX, m.RightVector);
+
+			m = <#= className #>.LookAtDirection(<#= vertex3 #>.Zero, <#= vertex3 #>.UnitY, <#= vertex3 #>.UnitY).Inverse;
+			Assert.AreEqual(<#= vertex3 #>.UnitY, m.ForwardVector);
+			Assert.AreEqual(<#= vertex3 #>.UnitZ, m.UpVector);
+			Assert.AreEqual(<#= vertex3 #>.UnitX, m.RightVector);
+		}
+
+		#endregion
+
+		#region Translation
+
+		[Test]
+		public void <#= className #>_Translated()
+		{
+			<#= className #> m = <#= className #>.Translated(0.0<#= literal #>, 1.0<#= literal #>, 2.0<#= literal #>);
+			<#= vertex3 #> v = new <#= vertex3 #>(0.0<#= literal #>, 1.0<#= literal #>, 2.0<#= literal #>);
+
+			Assert.AreEqual(v, m.Position);
+			Assert.IsTrue(v.Equals((<#= vertex3 #>)(m * <#= columnType #>.Zero), <#= epsilon #>));
+		}
+
+		[Test]
+		public void <#= className #>_Translate()
+		{
+			<#= className #> m = <#= className #>.Identity;
+			<#= vertex3 #> v = new <#= vertex3 #>(0.0<#= literal #>, 1.0<#= literal #>, 2.0<#= literal #>);
+			
+			m.Translate(0.0<#= literal #>, 1.0<#= literal #>, 2.0<#= literal #>);
+			
+			Assert.AreEqual(v, m.Position);
+			Assert.IsTrue(v.Equals((<#= vertex3 #>)(m * <#= vertex3 #>.Zero), <#= epsilon #>));
+		}
+
+		#endregion
+
+<# } #>
+<# if (c == r) { #>
+		#region Rotation
+
+<# if (c > 2) { #>
+		[Test]
+		public void <#= className #>_RotatedX()
+		{
+			<#= className #> m = <#= className #>.RotatedX(0.0<#= literal #>);
+			Assert.IsTrue(m.Equals(<#= className #>.Identity, <#= epsilon #>));
+
+			<#= className #> r1 = <#= className #>.RotatedX(+90.0<#= literal #>);
+			<#= className #> r2 = <#= className #>.RotatedX(-90.0<#= literal #>);
+			Assert.IsTrue((r1 * r2).Equals(<#= className #>.Identity, <#= epsilon #>));
+
+			r1 = <#= className #>.RotatedX(+90.0<#= literal #>);
+			r2 = <#= className #>.RotatedX(+180.0<#= literal #>);
+			Assert.IsTrue((r1 * r1).Equals(r2, <#= epsilon #>));
+
+			<#= columnType #> v = <#= className #>.RotatedX(+90.0<#= literal #>) * <#= columnType #>.UnitY;
+			Assert.IsTrue(v.Equals(<#= columnType #>.UnitZ, <#= epsilon #>));
+		}
+
+		[Test]
+		public void <#= className #>_RotateX()
+		{
+			<#= className #> m = <#= className #>.Identity;
+			
+			m.RotateX(0.0<#= literal #>);
+			Assert.IsTrue(m.Equals(<#= className #>.Identity, <#= epsilon #>));
+
+			m.RotateX(+90.0<#= literal #>);
+			m.RotateX(-90.0<#= literal #>);
+			Assert.IsTrue(m.Equals(<#= className #>.Identity, <#= epsilon #>));
+
+			m.RotateX(+180.0<#= literal #>);
+			Assert.IsTrue(m.Equals(<#= className #>.RotatedX(+180.0<#= literal #>), <#= epsilon #>));
+
+			m = <#= className #>.Identity;
+			m.RotateX(+90.0<#= literal #>);
+			<#= columnType #> v = m * <#= columnType #>.UnitY;
+			Assert.IsTrue(v.Equals(<#= columnType #>.UnitZ, <#= epsilon #>));
+		}
+
+		[Test]
+		public void <#= className #>_RotatedY()
+		{
+			<#= className #> m = <#= className #>.RotatedY(0.0<#= literal #>);
+			Assert.IsTrue(m.Equals(<#= className #>.Identity, <#= epsilon #>));
+
+			<#= className #> r1 = <#= className #>.RotatedY(+90.0<#= literal #>);
+			<#= className #> r2 = <#= className #>.RotatedY(-90.0<#= literal #>);
+			Assert.IsTrue((r1 * r2).Equals(<#= className #>.Identity, <#= epsilon #>));
+
+			r1 = <#= className #>.RotatedY(+90.0<#= literal #>);
+			r2 = <#= className #>.RotatedY(+180.0<#= literal #>);
+			Assert.IsTrue((r1 * r1).Equals(r2, <#= epsilon #>));
+
+			<#= columnType #> v = <#= className #>.RotatedY(+90.0<#= literal #>) * <#= columnType #>.UnitZ;
+			Assert.IsTrue(v.Equals(<#= columnType #>.UnitX, <#= epsilon #>));
+		}
+
+		[Test]
+		public void <#= className #>_RotateY()
+		{
+			<#= className #> m = <#= className #>.Identity;
+			
+			m.RotateY(0.0<#= literal #>);
+			Assert.IsTrue(m.Equals(<#= className #>.Identity, <#= epsilon #>));
+
+			m.RotateY(+90.0<#= literal #>);
+			m.RotateY(-90.0<#= literal #>);
+			Assert.IsTrue(m.Equals(<#= className #>.Identity, <#= epsilon #>));
+
+			m.RotateY(+180.0<#= literal #>);
+			Assert.IsTrue(m.Equals(<#= className #>.RotatedY(+180.0<#= literal #>), <#= epsilon #>));
+
+			m = <#= className #>.Identity;
+			m.RotateY(+90.0<#= literal #>);
+			<#= columnType #> v = m * <#= columnType #>.UnitZ;
+			Assert.IsTrue(v.Equals(<#= columnType #>.UnitX, <#= epsilon #>));
+		}
+
+<# } #>
+		[Test]
+		public void <#= className #>_RotatedZ()
+		{
+			<#= className #> m = <#= className #>.RotatedZ(0.0<#= literal #>);
+			Assert.IsTrue(m.Equals(<#= className #>.Identity, <#= epsilon #>));
+
+			<#= className #> r1 = <#= className #>.RotatedZ(+90.0<#= literal #>);
+			<#= className #> r2 = <#= className #>.RotatedZ(-90.0<#= literal #>);
+			Assert.IsTrue((r1 * r2).Equals(<#= className #>.Identity, <#= epsilon #>));
+
+			r1 = <#= className #>.RotatedZ(+90.0<#= literal #>);
+			r2 = <#= className #>.RotatedZ(+180.0<#= literal #>);
+			Assert.IsTrue((r1 * r1).Equals(r2, <#= epsilon #>));
+
+<# if (c > 2) { #>
+			<#= columnType #> v = <#= className #>.RotatedZ(+90.0<#= literal #>) * <#= columnType #>.UnitX;
+			Assert.IsTrue(v.Equals(<#= columnType #>.UnitY, <#= epsilon #>));
+<# } #>
+		}
+
+		[Test]
+		public void <#= className #>_RotateZ()
+		{
+			<#= className #> m = <#= className #>.Identity;
+			
+			m.RotateZ(0.0<#= literal #>);
+			Assert.IsTrue(m.Equals(<#= className #>.Identity, <#= epsilon #>));
+
+			m.RotateZ(+90.0<#= literal #>);
+			m.RotateZ(-90.0<#= literal #>);
+			Assert.IsTrue(m.Equals(<#= className #>.Identity, <#= epsilon #>));
+
+			m.RotateZ(+180.0<#= literal #>);
+			Assert.IsTrue(m.Equals(<#= className #>.RotatedZ(+180.0<#= literal #>), <#= epsilon #>));
+
+<# if (c > 2) { #>
+			m = <#= className #>.Identity;
+			m.RotateZ(+90.0<#= literal #>);
+			<#= columnType #> v = m * <#= columnType #>.UnitX;
+			Assert.IsTrue(v.Equals(<#= columnType #>.UnitY, <#= epsilon #>));
+<# } #>
+		}
+
+		#endregion
+
+<# } #>
+<# if (c == r && c >= 3) { #>
+		#region Scaling
+
+		[Test]
+		public void <#= className #>_Scaled()
+		{
+			<#= className #> m = <#= className #>.Scaled(1.0f, 1.0f, 1.0f);
+			<#= columnType #> v;
+			
+			v = m * <#= columnType #>.UnitX;
+			Assert.IsTrue(<#= columnType #>.UnitX.Equals(v, <#= epsilon #>));
+
+			v = m * <#= columnType #>.UnitY;
+			Assert.IsTrue(<#= columnType #>.UnitY.Equals(v, <#= epsilon #>));
+
+			v = m * <#= columnType #>.UnitZ;
+			Assert.IsTrue(<#= columnType #>.UnitZ.Equals(v, <#= epsilon #>));
+
+			m = <#= className #>.Scaled(0.5f, 2.0f, 3.0f);
+
+			v = m * <#= columnType #>.UnitX;
+			Assert.IsTrue((<#= columnType #>.UnitX * 0.5f).Equals(v, <#= epsilon #>));
+
+			v = m * <#= columnType #>.UnitY;
+			Assert.IsTrue((<#= columnType #>.UnitY * 2.0f).Equals(v, <#= epsilon #>));
+
+			v = m * <#= columnType #>.UnitZ;
+			Assert.IsTrue((<#= columnType #>.UnitZ * 3.0f).Equals(v, <#= epsilon #>));
+		}
+
+		[Test]
+		public void <#= className #>_Scale()
+		{
+			<#= className #> m = <#= className #>.Identity;
+			<#= columnType #> v;
+
+			m.Scale(1.0f, 1.0f, 1.0f);
+
+			v = m * <#= columnType #>.UnitX;
+			Assert.IsTrue(<#= columnType #>.UnitX.Equals(v, <#= epsilon #>));
+
+			v = m * <#= columnType #>.UnitY;
+			Assert.IsTrue(<#= columnType #>.UnitY.Equals(v, <#= epsilon #>));
+
+			v = m * <#= columnType #>.UnitZ;
+			Assert.IsTrue(<#= columnType #>.UnitZ.Equals(v, <#= epsilon #>));
+
+			m.Scale(0.5f, 2.0f, 3.0f);
+
+			v = m * <#= columnType #>.UnitX;
+			Assert.IsTrue((<#= columnType #>.UnitX * 0.5f).Equals(v, <#= epsilon #>));
+
+			v = m * <#= columnType #>.UnitY;
+			Assert.IsTrue((<#= columnType #>.UnitY * 2.0f).Equals(v, <#= epsilon #>));
+
+			v = m * <#= columnType #>.UnitZ;
+			Assert.IsTrue((<#= columnType #>.UnitZ * 3.0f).Equals(v, <#= epsilon #>));
+		}
+
+		#endregion
+
+<# } #>
+		#region Transposition
+
+		[Test]
+		public void <#= className #>_Transposed()
+		{
+			<#= className #> m = CreateRandomMatrix();
+			<#= tranposedClassName #> t = m.Transposed;
+
+<# for (int c1 = 0, idx = 0; c1 < c; c1++) for (int r1 = 0; r1 < r; r1++, idx++) { #>
+			Assert.That(m[<#= c1 #>, <#= r1 #>], Is.EqualTo(t[<#= r1 #>, <#= c1 #>]).Within(<#= epsilon #>));
+<# } #>
+		}
+
+<# if (c == r) { #>
+		[Test]
+		public void <#= className #>_Transpose()
+		{
+			<#= className #> m = CreateRandomMatrix();
+			<#= className #> n = m;
+
+			m.Transpose();
+
+<# for (int c1 = 0, idx = 0; c1 < c; c1++) for (int r1 = 0; r1 < r; r1++, idx++) { #>
+			Assert.That(n[<#= c1 #>, <#= r1 #>], Is.EqualTo(m[<#= r1 #>, <#= c1 #>]).Within(<#= epsilon #>));
+<# } #>
+		}
+
+<# } #>
+		#endregion
+
+<# if (c == r) { #>
+		#region Inversion
+
+		[Test]
+		public void <#= className #>_Determinant()
+		{
+			Assert.AreEqual(1.0<#= literal #>, <#= className #>.Identity.Determinant);
+		}
+
+		[Test]
+		public void <#= className #>_Inverse()
+		{
+			<#= className #> r;
+
+			Assert.Throws<InvalidOperationException>(() => r = new <#= className #>().Inverse);
+
+			<#= className #> m = CreateInvertibleMatrix();
+			<#= className #> n = m.Inverse;
+			
+			r = m * n;
+
+			Assert.IsTrue(r.Equals(<#= className #>.Identity, <#= epsilonLP #>));
+		}
+
+		[Test]
+		public void <#= className #>_Invert()
+		{
+			Assert.Throws<InvalidOperationException>(() => new <#= className #>().Invert());
+
+			<#= className #> m = CreateInvertibleMatrix();
+			<#= className #> n = m;
+
+			m.Invert();
+
+			<#= className #> r = m * n;
+
+			Assert.IsTrue(r.Equals(<#= className #>.Identity, <#= epsilonLP #>));
+		}
+
+		#endregion
+
+<# } #>
+		#region IEquatable Implementation
+
+		[Test]
+		public void <#= className #>_AbsoluteEqualsTo<#= className #>()
+		{
+			<#= className #> m = new <#= className #>();
+
+<# for (int c1 = 0; c1 < c; c1++) for (int r1 = 0; r1 < r; r1++) { #>
+			m[<#= c1 #>, <#= r1 #>] = 0.5<#= literal #>;
+			Assert.IsFalse(m.Equals(<#= className #>.Zero, 0.25<#= literal #>));
+			Assert.IsTrue(m.Equals(<#= className #>.Zero, 0.50<#= literal #>));
+			m[<#= c1 #>, <#= r1 #>] = 0.0<#= literal #>;
+<# } #>
+		}
+
+		[Test]
+		public void <#= className #>_EqualsTo<#= className #>()
+		{
+			<#= className #> m1 = CreateRandomMatrix();
+			<#= className #> m2 = m1;
+
+			Assert.IsTrue(m1.Equals(m2));
+			Assert.AreEqual(m1, m2);
+		}
+
+		[Test]
+		public void <#= className #>_EqualsToObject()
+		{
+			<#= className #> m1 = CreateRandomMatrix();
+			<#= className #> m2 = m1;
+
+			Assert.IsFalse(m1.Equals(null));
+			Assert.IsFalse(m1.Equals((object)false));
+			Assert.IsTrue(m1.Equals((object)m2));
+			Assert.AreEqual(m1, m2);
+		}
+
+		[Test]
+		public void <#= className #>_GetHashCode()
+		{
+			<#= className #> m = CreateRandomMatrix();
+			int hashCode, cache = 0;
+			
+			Assert.DoesNotThrow(() => cache = m.GetHashCode());
+
+<# for (int c1 = 0, idx = 0; c1 < c; c1++) for (int r1 = 0; r1 < r; r1++, idx++) { #>
+			m[<#= c1 #>, <#= r1 #>] = Next(0.0<#= literal #>, 1.0<#= literal #>);
+			hashCode = m.GetHashCode();
+			Assert.AreNotEqual(cache, hashCode);
+			cache = hashCode;
+<# } #>
+		}
+
+		#endregion
+
+		#region Object Overrides
+
+		[Test]
+		public void <#= className #>_ToString()
+		{
+			<#= className #> m = CreateRandomMatrix();
+
+			Assert.DoesNotThrow(() => m.ToString());
+			Assert.IsNotNull(m.ToString());
+		}
+
+		#endregion
+
+		#region Utilities
+
+		private static <#= className #> CreateRandomMatrix()
+		{
+			return new <#= className #>(new[] {
+<# for (int c1 = 0; c1 < c; c1++) { #>
+				<# for (int r1 = 0; r1 < r; r1++) { #>Next(0.0<#= literal #>, 1.0<#= literal #>)<# if (c1 < c - 1 || r1 < r - 1) { #>, <# } #><# } #>
+
+<# } #>
+			});
+		}
+
+		private static <#= className #> CreateSequenceMatrix()
+		{
+			return new <#= className #>(new[] {
+<# for (int c1 = 0, idx = 0; c1 < c; c1++) { #>
+				<# for (int r1 = 0; r1 < r; r1++, idx++) { #>(<#= matrixBaseType #>)<#= idx #><# if (c1 < c - 1 || r1 < r - 1) { #>, <# } #><# } #>
+
+<# } #>
+			});
+		}
+
+<# if (c == r) { #>
+		private static <#= className #> CreateInvertibleMatrix()
+		{
+			<#= className #> m = new <#= className #>();
+
+<# for (int c1 = 0, idx = 0; c1 < c; c1++) for (int r1 = 0; r1 < r; r1++, idx++) { #>
+<# if (c1 == r1) { #>
+			m[<#= c1 #>, <#= r1 #>] = Next(1.0<#= literal #>, 2.0<#= literal #>);
+<# } else { #>
+			m[<#= c1 #>, <#= r1 #>] = Next(0.0<#= literal #>, 0.5<#= literal #>);
+<# } #>
+<# } #>
+
+			return m;
+		}
+
+<# } #>
+		#endregion
+	}
+
+<# } #>
+}

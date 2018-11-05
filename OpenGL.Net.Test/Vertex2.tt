@@ -1,0 +1,647 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".cs" #>
+<#@ Assembly Name="System.Core" #>
+<#@ Import Namespace="System" #>
+<#@ Import Namespace="System.Collections.Generic" #>
+<#@ Import Namespace="System.Linq" #>
+<#@ Import Namespace="System.Runtime.InteropServices" #>
+
+// Copyright (C) 2017 Luca Piccioni
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
+using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+
+using NUnit.Framework;
+
+#if HAVE_NUMERICS
+using System.Numerics;
+#endif
+
+namespace OpenGL.Test
+{
+	class Vertex2TestBase
+	{
+		protected static double Next(Random random)
+		{
+			return (Next(random, 16.0, 32.0));
+		}
+
+		protected static double Next(Random random, double minValue, double maxValue)
+		{
+			return (random.NextDouble() * (maxValue - minValue) + minValue);
+		}
+	}
+
+<#
+	string[] underlyingType =	new[] { "byte", "sbyte", "ushort", "short", "uint", "int", "float", "double", "HalfFloat" };
+	string[] postfixes =		new[] { "ub",   "b",     "us",     "s",     "ui",   "i",   "f",     "d",      "hf" };
+	int[] signedTypes =			new[] {  0,      1,       0,        1,       0,      1,     1,       1,        0 };
+	int[] integerTypes =		new[] {  1,      1,       1,        1,       1,      1,     0,       0,        0 };
+
+	for (int i = 0; i < underlyingType.Length; i++) {
+		string className = String.Format("Vertex2{0}", postfixes[i]);
+		string baseType = underlyingType[i];
+		int signedType = signedTypes[i];
+		int integerType = integerTypes[i];
+#>
+	[TestFixture, Category("Math")]
+	class <#= className #>Test : Vertex2TestBase
+	{
+		#region Constructors
+
+		[Test(Description = "Test <#= className #>(<#= baseType #>)")]
+		public void <#= className #>_Constructor1()
+		{
+			Random random = new Random();
+			<#= baseType #> randomValue = (<#= baseType #>)Next(random);
+			
+			<#= className #> v = new <#= className #>(randomValue);
+
+			Assert.AreEqual(randomValue, v.x);
+			Assert.AreEqual(randomValue, v.y);
+		}
+
+		[Test(Description = "Test <#= className #>(<#= baseType #>[])")]
+		public void <#= className #>_Constructor2()
+		{
+			Random random = new Random();
+			<#= baseType #> randomValueX = (<#= baseType #>)Next(random);
+			<#= baseType #> randomValueY = (<#= baseType #>)Next(random);
+
+			<#= className #> v = new <#= className #>(new <#= baseType #>[] {
+				randomValueX, randomValueY
+			});
+
+			Assert.AreEqual(randomValueX, v.x);
+			Assert.AreEqual(randomValueY, v.y);
+		}
+
+		[Test(Description = "Test <#= className #>(<#= baseType #>, <#= baseType #>, <#= baseType #>)")]
+		public void <#= className #>_Constructor3()
+		{
+			Random random = new Random();
+			<#= baseType #> randomValueX = (<#= baseType #>)Next(random);
+			<#= baseType #> randomValueY = (<#= baseType #>)Next(random);
+
+			<#= className #> v = new <#= className #>(
+				randomValueX, randomValueY
+			);
+
+			Assert.AreEqual(randomValueX, v.x);
+			Assert.AreEqual(randomValueY, v.y);
+		}
+
+		#endregion
+
+		#region Properties
+
+		[Test(Description = "Test <#= className #>.Size against Marshal.SizeOf")]
+		public void <#= className #>_MarshalSize()
+		{
+			Assert.AreEqual(Marshal.SizeOf(typeof(<#= className #>)), <#= className #>.Size);
+		}
+
+		#endregion
+
+		#region Arithmetic Operators
+
+<#
+		if (signedType != 0) {
+#>
+		[Test(Description = "Test <#= className #>.operator-(<#= className #>))")]
+		public void <#= className #>_OperatorNegate()
+		{
+			Random random = new Random();
+			
+			<#= baseType #> x = (<#= baseType #>)Next(random);
+			<#= baseType #> y = (<#= baseType #>)Next(random);
+
+			<#= className #> v = new <#= className #>(x, y);
+			<#= className #> n = -v;
+
+			Assert.AreEqual(-x, n.x);
+			Assert.AreEqual(-y, n.y);
+		}
+<#
+		}
+#>
+		[Test(Description = "Test <#= className #>.operator+(<#= className #>, <#= className #>)")]
+		public void <#= className #>_OperatorAdd()
+		{
+			Random random = new Random();
+			
+			<#= baseType #> x1 = (<#= baseType #>)Next(random);
+			<#= baseType #> y1 = (<#= baseType #>)Next(random);
+
+			<#= className #> v1 = new <#= className #>(x1, y1);
+
+			<#= baseType #> x2 = (<#= baseType #>)Next(random);
+			<#= baseType #> y2 = (<#= baseType #>)Next(random);
+
+			<#= className #> v2 = new <#= className #>(x2, y2);
+
+			<#= className #> v = v1 + v2;
+
+			Assert.AreEqual((<#= baseType #>)(x1 + x2), v.x);
+			Assert.AreEqual((<#= baseType #>)(y1 + y2), v.y);
+		}
+
+		[Test(Description = "Test <#= className #>.operator-(<#= className #>, <#= className #>)")]
+		public void <#= className #>_OperatorSub()
+		{
+			Random random = new Random();
+			
+			<#= baseType #> x1 = (<#= baseType #>)Next(random);
+			<#= baseType #> y1 = (<#= baseType #>)Next(random);
+
+			<#= className #> v1 = new <#= className #>(x1, y1);
+
+			<#= baseType #> x2 = (<#= baseType #>)Next(random);
+			<#= baseType #> y2 = (<#= baseType #>)Next(random);
+
+			<#= className #> v2 = new <#= className #>(x2, y2);
+
+			<#= className #> v = v1 - v2;
+
+			Assert.AreEqual((<#= baseType #>)(x1 - x2), v.x);
+			Assert.AreEqual((<#= baseType #>)(y1 - y2), v.y);
+		}
+
+		[Test(Description = "Test <#= className #>.operator*(<#= className #>, Single)")]
+		public void <#= className #>_OperatorMultiplySingle()
+		{
+			Random random = new Random();
+			
+			<#= baseType #> x1 = (<#= baseType #>)Next(random);
+			<#= baseType #> y1 = (<#= baseType #>)Next(random);
+			double s = Next(random, 0.0, 32.0);
+
+			<#= className #> v1 = new <#= className #>(x1, y1);
+
+			<#= className #> v = v1 * (float)s;
+
+			Assert.AreEqual((<#= baseType #>)(x1 * (float)s), v.x);
+			Assert.AreEqual((<#= baseType #>)(y1 * (float)s), v.y);
+		}
+
+		[Test(Description = "Test <#= className #>.operator*(<#= className #>, Double)")]
+		public void <#= className #>_OperatorMultiplyDouble()
+		{
+			Random random = new Random();
+			
+			<#= baseType #> x1 = (<#= baseType #>)Next(random);
+			<#= baseType #> y1 = (<#= baseType #>)Next(random);
+			double s = Next(random, 0.0, 32.0);
+
+			<#= className #> v1 = new <#= className #>(x1, y1);
+
+			<#= className #> v = v1 * s;
+
+			Assert.AreEqual((<#= baseType #>)(x1 * s), v.x);
+			Assert.AreEqual((<#= baseType #>)(y1 * s), v.y);
+		}
+
+		[Test(Description = "Test <#= className #>.operator/(<#= className #>, Single)")]
+		public void <#= className #>_OperatorDivideSingle()
+		{
+			Random random = new Random();
+			
+			<#= baseType #> x1 = (<#= baseType #>)Next(random);
+			<#= baseType #> y1 = (<#= baseType #>)Next(random);
+			double s = Next(random, 1.0, 32.0);
+
+			<#= className #> v1 = new <#= className #>(x1, y1);
+
+			<#= className #> v = v1 / (float)s;
+
+			Assert.AreEqual((<#= baseType #>)(x1 / (float)s), v.x);
+			Assert.AreEqual((<#= baseType #>)(y1 / (float)s), v.y);
+		}
+
+		[Test(Description = "Test <#= className #>.operator/(<#= className #>, Double)")]
+		public void <#= className #>_OperatorDivideDouble()
+		{
+			Random random = new Random();
+			
+			<#= baseType #> x1 = (<#= baseType #>)Next(random);
+			<#= baseType #> y1 = (<#= baseType #>)Next(random);
+			double s = Next(random, 1.0, 32.0);
+
+			<#= className #> v1 = new <#= className #>(x1, y1);
+
+			<#= className #> v = v1 / s;
+
+			Assert.AreEqual((<#= baseType #>)(x1 / s), v.x);
+			Assert.AreEqual((<#= baseType #>)(y1 / s), v.y);
+		}
+
+<#
+		if (integerType != 0) {
+#>
+		[Test(Description = "Test <#= className #>.operator*(<#= className #>, <#= baseType #>)")]
+		public void <#= className #>_OperatorScalarMultiply()
+		{
+			Random random = new Random();
+			
+			<#= baseType #> x1 = (<#= baseType #>)Next(random);
+			<#= baseType #> y1 = (<#= baseType #>)Next(random);
+			<#= baseType #> s = (<#= baseType #>)Next(random, 0.0, 32.0);
+
+			<#= className #> v1 = new <#= className #>(x1, y1);
+
+			<#= className #> v = v1 * s;
+
+			Assert.AreEqual((<#= baseType #>)(x1 * s), v.x);
+			Assert.AreEqual((<#= baseType #>)(y1 * s), v.y);
+		}
+
+		[Test(Description = "Test <#= className #>.operator/(<#= className #>, <#= baseType #>)")]
+		public void <#= className #>_OperatorScalarDivide()
+		{
+			Random random = new Random();
+			
+			<#= baseType #> x1 = (<#= baseType #>)Next(random);
+			<#= baseType #> y1 = (<#= baseType #>)Next(random);
+			<#= baseType #> s = (<#= baseType #>)Next(random, 1.0, 32.0);
+
+			<#= className #> v1 = new <#= className #>(x1, y1);
+
+			<#= className #> v = v1 / s;
+
+			Assert.AreEqual((<#= baseType #>)(x1 / s), v.x);
+			Assert.AreEqual((<#= baseType #>)(y1 / s), v.y);
+		}
+<#
+		}
+#>
+
+		#endregion
+
+		#region Equality Operators
+
+		[Test(Description = "Test <#= className #>.operator==(<#= className #>, <#= className #>)")]
+		public void <#= className #>_OperatorEquality()
+		{
+			<#= className #> v = <#= className #>.UnitX;
+
+			Assert.IsTrue(v == <#= className #>.UnitX);
+			Assert.IsFalse(v == <#= className #>.UnitY);
+		}
+
+		[Test(Description = "Test <#= className #>.operator!=(<#= className #>, <#= className #>)")]
+		public void <#= className #>_OperatorInequality()
+		{
+			<#= className #> v = <#= className #>.UnitX;
+
+			Assert.IsFalse(v != <#= className #>.UnitX);
+			Assert.IsTrue(v != <#= className #>.UnitY);
+		}
+
+		#endregion
+
+		#region Cast Operators
+
+		[Test(Description = "Test <#= className #>.operator <#= baseType #>[](<#= className #>)")]
+		public void <#= className #>_CastToArray()
+		{
+			Random random = new Random();
+			
+			<#= baseType #> x = (<#= baseType #>)Next(random);
+			<#= baseType #> y = (<#= baseType #>)Next(random);
+
+			<#= className #> v = new <#= className #>(x, y);
+			<#= baseType #>[] vArray = (<#= baseType #>[])v;
+
+			Assert.AreEqual(v.x, vArray[0]);
+			Assert.AreEqual(v.y, vArray[1]);
+		}
+
+		[Test(Description = "Test <#= className #>.operator Vertex2f(<#= className #>)")]
+		public void <#= className #>_CastToVertex2f()
+		{
+			Random random = new Random();
+			
+			<#= baseType #> x = (<#= baseType #>)Next(random);
+			<#= baseType #> y = (<#= baseType #>)Next(random);
+
+			<#= className #> v = new <#= className #>(x, y);
+			Vertex2f v2f = (Vertex2f)v;
+
+			Assert.AreEqual(v.x, (float)v2f.x, 1e-4f);
+			Assert.AreEqual(v.y, (float)v2f.y, 1e-4f);
+		}
+
+		#endregion
+
+		#region Vertex Methods
+
+<#
+		float moduleT1 = (float)Math.Sqrt(1.0 +  4.0);
+		float moduleT2 = (float)Math.Sqrt(4.0 + 25.0);
+#>
+		[Test(Description = "Test <#= className #>.Module()")]
+		public void <#= className #>_Module()
+		{
+			Assert.AreEqual(<#= moduleT1 #>f, new <#= className #>((<#= baseType #>)1.0, (<#= baseType #>)2.0).Module(), 1e-4f);
+			Assert.AreEqual(<#= moduleT2 #>f, new <#= className #>((<#= baseType #>)2.0, (<#= baseType #>)5.0).Module(), 1e-4f);
+		}
+
+<#
+		float moduleSquaredT1 = (float)(1.0 +  4.0);
+		float moduleSquaredT2 = (float)(4.0 + 25.0);
+#>
+		[Test(Description = "Test <#= className #>.ModuleSquared()")]
+		public void <#= className #>_ModuleSquared()
+		{
+			Assert.AreEqual(<#= moduleSquaredT1 #>f, new <#= className #>((<#= baseType #>)1.0, (<#= baseType #>)2.0).ModuleSquared(), 1e-4f);
+			Assert.AreEqual(<#= moduleSquaredT2 #>f, new <#= className #>((<#= baseType #>)2.0, (<#= baseType #>)5.0).ModuleSquared(), 1e-4f);
+		}
+
+		[Test(Description = "Test <#= className #>.Normalize()")]
+		public void <#= className #>_Normalize()
+		{
+			Assert.DoesNotThrow(delegate() { <#= className #>.Zero.Normalize(); });
+
+			<#= className #> v;
+
+			v = <#= className #>.UnitX * (<#= baseType #>)2.0f;
+			v.Normalize();
+			Assert.AreEqual(<#= className #>.UnitX, v);
+
+			v = <#= className #>.UnitY * (<#= baseType #>)2.0f;
+			v.Normalize();
+			Assert.AreEqual(<#= className #>.UnitY, v);
+		}
+
+		[Test(Description = "Test <#= className #>.Normalized")]
+		public void <#= className #>_Normalized()
+		{
+			<#= className #> v;
+
+			Assert.DoesNotThrow(delegate() { v = <#= className #>.Zero.Normalized; });
+
+			v = <#= className #>.UnitX * (<#= baseType #>)2.0f;
+			Assert.AreEqual(<#= className #>.UnitX, v.Normalized);
+
+			v = <#= className #>.UnitY * (<#= baseType #>)2.0f;
+			Assert.AreEqual(<#= className #>.UnitY, v.Normalized);
+		}
+
+		[Test(Description = "Test <#= className #>.Min(<#= className #>[])")]
+		public void <#= className #>_Min()
+		{
+			<#= className #>[] v = new <#= className #>[] {
+				new <#= className #>((<#= baseType #>)1.0f, (<#= baseType #>)13.0f),
+				new <#= className #>((<#= baseType #>)2.0f, (<#= baseType #>)12.0f),
+				new <#= className #>((<#= baseType #>)3.0f, (<#= baseType #>)11.0f),
+			};
+
+			<#= className #> min = <#= className #>.Min(v);
+
+			Assert.AreEqual(
+				new <#= className #>((<#= baseType #>)1.0f, (<#= baseType #>)11.0f),
+				min
+			);
+		}
+
+		[Test(Description = "Test <#= className #>.Min(<#= className #>[]) ArgumentNullException")]
+		public void <#= className #>_Min_ArgumentNullException()
+		{
+			Assert.Throws<ArgumentNullException>(() => <#= className #>.Min(null));
+		}
+
+		[Test(Description = "Test <#= className #>.Min(<#= className #>*)")]
+		public void <#= className #>_Min_Unsafe()
+		{
+			<#= className #>[] v = new <#= className #>[] {
+				new <#= className #>((<#= baseType #>)1.0f, (<#= baseType #>)13.0f),
+				new <#= className #>((<#= baseType #>)2.0f, (<#= baseType #>)12.0f),
+				new <#= className #>((<#= baseType #>)3.0f, (<#= baseType #>)11.0f),
+			};
+
+			<#= className #> min;
+
+			unsafe {
+				fixed (<#= className #>* vPtr = v) {
+					min = <#= className #>.Min(vPtr, (uint)v.Length);
+				}
+			}
+
+			Assert.AreEqual(
+				new <#= className #>((<#= baseType #>)1.0f, (<#= baseType #>)11.0f),
+				min
+			);
+		}
+
+		[Test(Description = "Test <#= className #>.Min(<#= className #>*) ArgumentNullException")]
+		public void <#= className #>_Min_Unsafe_ArgumentNullException()
+		{
+			unsafe {
+				Assert.Throws<ArgumentNullException>(() => <#= className #>.Min(null, 0));
+			}
+		}
+
+		[Test(Description = "Test <#= className #>.Max(<#= className #>[])")]
+		public void <#= className #>_Max()
+		{
+			<#= className #>[] v = new <#= className #>[] {
+				new <#= className #>((<#= baseType #>)1.0f, (<#= baseType #>)13.0f),
+				new <#= className #>((<#= baseType #>)2.0f, (<#= baseType #>)12.0f),
+				new <#= className #>((<#= baseType #>)3.0f, (<#= baseType #>)11.0f),
+			};
+
+			<#= className #> max = <#= className #>.Max(v);
+
+			Assert.AreEqual(
+				new <#= className #>((<#= baseType #>)3.0f, (<#= baseType #>)13.0f),
+				max
+			);
+		}
+
+		[Test(Description = "Test <#= className #>.Max(<#= className #>[]) ArgumentNullException")]
+		public void <#= className #>_Max_ArgumentNullException()
+		{
+			Assert.Throws<ArgumentNullException>(() => <#= className #>.Max(null));
+		}
+
+		[Test(Description = "Test <#= className #>.Max(<#= className #>*)")]
+		public void <#= className #>_Max_Unsafe()
+		{
+			<#= className #>[] v = new <#= className #>[] {
+				new <#= className #>((<#= baseType #>)1.0f, (<#= baseType #>)13.0f),
+				new <#= className #>((<#= baseType #>)2.0f, (<#= baseType #>)12.0f),
+				new <#= className #>((<#= baseType #>)3.0f, (<#= baseType #>)11.0f),
+			};
+
+			<#= className #> max;
+
+			unsafe {
+				fixed (<#= className #>* vPtr = v) {
+					max = <#= className #>.Max(vPtr, (uint)v.Length);
+				}
+			}
+
+			Assert.AreEqual(
+				new <#= className #>((<#= baseType #>)3.0f, (<#= baseType #>)13.0f),
+				max
+			);
+		}
+
+		[Test(Description = "Test <#= className #>.Max(<#= className #>*) ArgumentNullException")]
+		public void <#= className #>_Max_Unsafe_ArgumentNullException()
+		{
+			unsafe {
+				Assert.Throws<ArgumentNullException>(() => <#= className #>.Max(null, 0));
+			}
+		}
+
+		[Test(Description = "Test <#= className #>.Max(<#= className #>[])")]
+		public void <#= className #>_MinMax()
+		{
+			<#= className #>[] v = new <#= className #>[] {
+				new <#= className #>((<#= baseType #>)1.0f, (<#= baseType #>)13.0f),
+				new <#= className #>((<#= baseType #>)2.0f, (<#= baseType #>)12.0f),
+				new <#= className #>((<#= baseType #>)3.0f, (<#= baseType #>)11.0f),
+			};
+
+			<#= className #> min, max;
+
+			<#= className #>.MinMax(v, out min, out max);
+
+			Assert.AreEqual(
+				new <#= className #>((<#= baseType #>)1.0f, (<#= baseType #>)11.0f),
+				min
+			);
+			Assert.AreEqual(
+				new <#= className #>((<#= baseType #>)3.0f, (<#= baseType #>)13.0f),
+				max
+			);
+		}
+
+		[Test(Description = "Test <#= className #>.Max(<#= className #>[]) ArgumentNullException")]
+		public void <#= className #>_MinMax_ArgumentNullException()
+		{
+			<#= className #> min, max;
+
+			Assert.Throws<ArgumentNullException>(() => <#= className #>.MinMax(null, out min, out max));
+		}
+
+		[Test(Description = "Test <#= className #>.MinMax(<#= className #>*)")]
+		public void <#= className #>_MinMax_Unsafe()
+		{
+			<#= className #>[] v = new <#= className #>[] {
+				new <#= className #>((<#= baseType #>)1.0f, (<#= baseType #>)13.0f),
+				new <#= className #>((<#= baseType #>)2.0f, (<#= baseType #>)12.0f),
+				new <#= className #>((<#= baseType #>)3.0f, (<#= baseType #>)11.0f),
+			};
+
+			<#= className #> min, max;
+
+			unsafe {
+				fixed (<#= className #>* vPtr = v) {
+					<#= className #>.MinMax(vPtr, (uint)v.Length, out min, out max);
+				}
+			}
+
+			Assert.AreEqual(
+				new <#= className #>((<#= baseType #>)1.0f, (<#= baseType #>)11.0f),
+				min
+			);
+			Assert.AreEqual(
+				new <#= className #>((<#= baseType #>)3.0f, (<#= baseType #>)13.0f),
+				max
+			);
+		}
+
+		[Test(Description = "Test <#= className #>.MinMax(<#= className #>*) ArgumentNullException")]
+		public void <#= className #>_MinMax_Unsafe_ArgumentNullException()
+		{
+			<#= className #> min, max;
+
+			unsafe {
+				Assert.Throws<ArgumentNullException>(() => <#= className #>.MinMax(null, 0, out min, out max));
+			}
+		}
+
+		#endregion
+
+		#region IEquatable Implementation
+
+		[Test(Description = "Test <#= className #>.Equals(<#= className #>)")]
+		public void <#= className #>_Equals_<#= className #>()
+		{
+			<#= className #> v = <#= className #>.UnitX;
+
+			Assert.IsTrue(v.Equals(<#= className #>.UnitX));
+			Assert.IsFalse(v.Equals(<#= className #>.UnitY));
+		}
+
+		[Test(Description = "Test <#= className #>.Equals(object)")]
+		public void <#= className #>_Equals_True()
+		{
+			<#= className #> v = <#= className #>.UnitX;
+
+			Assert.IsFalse(v.Equals(null));
+			Assert.IsFalse(v.Equals(String.Empty));
+			Assert.IsFalse(v.Equals(0.0f));
+
+			Assert.IsTrue(v.Equals((object)<#= className #>.UnitX));
+			Assert.IsFalse(v.Equals((object)<#= className #>.UnitY));
+		}
+
+		[Test(Description = "Test <#= className #>.GetHashCode()")]
+		public void <#= className #>_GetHashCode()
+		{
+			Random random = new Random();
+			
+			<#= baseType #> x = (<#= baseType #>)Next(random);
+			<#= baseType #> y = (<#= baseType #>)Next(random);
+
+			<#= className #> v = new <#= className #>(x, y);
+
+			Assert.DoesNotThrow(delegate() { v.GetHashCode(); });
+		}
+
+		#endregion
+
+		#region Object Overrides
+
+		[Test(Description = "Test <#= className #>.ToString()")]
+		public void <#= className #>_ToString()
+		{
+			Random random = new Random();
+			
+			<#= baseType #> x = (<#= baseType #>)Next(random);
+			<#= baseType #> y = (<#= baseType #>)Next(random);
+
+			<#= className #> v = new <#= className #>(x, y);
+
+			Assert.DoesNotThrow(delegate() { v.ToString(); });
+		}
+
+		#endregion
+	}
+
+<#
+	}
+#>
+}

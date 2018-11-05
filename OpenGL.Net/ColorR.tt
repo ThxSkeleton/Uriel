@@ -1,0 +1,152 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".cs" #>
+<#@ Assembly Name="System.Core" #>
+<#@ Import Namespace="System" #>
+<#@ Import Namespace="System.Collections.Generic" #>
+<#@ Import Namespace="System.Linq" #>
+<#@ Import Namespace="System.Runtime.InteropServices" #>
+
+// Copyright (C) 2009-2017 Luca Piccioni
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
+using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+
+namespace OpenGL
+{
+<#
+	string[] postfixes =		new[] { "8",    "16",     "32",   "F",     "D",      "HF"        };
+	string[] interfaceTypes =	new[] { "byte", "byte",   "byte", "float", "double", "HalfFloat" };
+	string[] pixelTypes =		new[] { "R8",   "R16",    "R32",  "RF",    "RD",     "RHF"     };
+	string[] structType =		new[] { "byte", "ushort", "uint", "float", "double", "HalfFloat" };
+	string[] vertexBaseType =	new[] { "Byte", "UShort", "UInt", "Float", "Double", "Half" };
+
+	for (int i = 0; i < postfixes.Length; i++) {
+		string className = String.Format("ColorR{0}", postfixes[i]);
+		string interfaceType = interfaceTypes[i];
+		string componentType = structType[i];
+		string pixelType = pixelTypes[i];
+#>
+	/// <summary>
+	/// R color (single component).
+	/// </summary>
+	[StructLayout(LayoutKind.Sequential, Pack = 1)]
+	public struct <#= className #>
+	{
+		#region Constructors
+
+		/// <summary>
+		/// Construct a <#= className #> specifying R component.
+		/// </summary>
+		/// <param name="r">
+		/// A <see cref="<#= interfaceType #>"/> that specify the red component.
+		/// </param>
+		public <#= className #>(<#= interfaceType #> r)
+		{
+			// Setup R components
+			this.r = r;
+		}
+
+		#endregion
+
+		#region Structure
+
+		/// <summary>
+		/// Red color component.
+		/// </summary>
+		public <#= componentType #> r;
+
+		#endregion
+
+		#region IColor Implementation
+
+		/// <summary>
+		/// Get the PixelLayout correponding to this IColor.
+		/// </summary>
+		public PixelLayout PixelType { get { return (PixelLayout.<#= pixelType #>); } }
+
+		/// <summary>
+		/// Get of set color components.
+		/// </summary>
+		/// <param name="c">
+		/// A <see cref="Int32"/> indicating the color component index.
+		/// </param>
+		/// <returns>
+		/// The color component converted from a normalized floating point number.
+		/// </returns>
+		/// <exception cref="IndexOutOfRangeException">
+		/// Exception thrown when <paramref name="c"/> is less than 0 or greater than the number of components of this IColor implementation.
+		/// </exception>
+		public float this[int c]
+		{
+<# if (interfaceType != "double" && interfaceType != "float"&& interfaceType != "HalfFloat") { #>
+			get
+			{
+				switch (c) {
+					case 0: return ((float)r   / <#= interfaceType #>.MaxValue);
+					default:
+						throw new IndexOutOfRangeException();
+				}
+			}
+			set
+			{
+				if (value < 0.0f || value > 1.0f)
+					throw new InvalidOperationException("value out of range");
+				switch (c) {
+					case 0: r =   (<#= interfaceType #>)(value * <#= interfaceType #>.MaxValue); break;
+					default:
+						throw new IndexOutOfRangeException();
+				}
+			}
+<# } else { #><#
+	string explicitCastOnFloat = String.Empty;
+
+	if (componentType == "double")
+		explicitCastOnFloat = "(float)";
+#>
+			get
+			{
+				switch (c) {
+					case 0: return (<#= explicitCastOnFloat #>r);
+					default:
+						throw new IndexOutOfRangeException();
+				}
+			}
+			set
+			{
+				if (value < 0.0f || value > 1.0f)
+					throw new InvalidOperationException("value out of range");
+				switch (c) {
+					case 0: r =   (<#= interfaceType #>)value; break;
+					default:
+						throw new IndexOutOfRangeException();
+				}
+			}
+<# } #>
+		}
+
+		#endregion
+	}
+
+<#
+}
+#>
+}

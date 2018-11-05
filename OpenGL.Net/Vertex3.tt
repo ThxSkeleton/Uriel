@@ -1,0 +1,906 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".cs" #>
+<#@ Assembly Name="System.Core" #>
+<#@ Import Namespace="System" #>
+<#@ Import Namespace="System.Collections.Generic" #>
+<#@ Import Namespace="System.Linq" #>
+<#@ Import Namespace="System.Runtime.InteropServices" #>
+
+// Copyright (C) 2009-2017 Luca Piccioni
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
+using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+
+#if HAVE_NUMERICS
+using System.Numerics;
+#endif
+
+namespace OpenGL
+{
+<#
+	string[] underlyingType =	new[] { "byte", "sbyte", "ushort", "short", "uint", "int", "float", "double", "HalfFloat" };
+	string[] postfixes =		new[] { "ub",   "b",     "us",     "s",     "ui",   "i",   "f",     "d",      "hf" };
+	string[] zeroes =			new[] { "0",    "0",     "0",      "0",     "0",    "0",   "0.0f",  "0.0",     "new HalfFloat(0.0f)" };
+	string[] ones =				new[] { "1",    "1",     "1",      "1",     "1",    "1",   "1.0f",  "1.0",     "new HalfFloat(1.0f)" };
+	string[] mins =				new[] { null,    null,    null,     null,    null,   null,   null,  null,      "new HalfFloat(HalfFloat.MinValue)" };
+	string[] maxs =				new[] { null,    null,    null,     null,    null,   null,   null,  null,      "new HalfFloat(HalfFloat.MaxValue)" };
+	int[] signedType =			new[] {  0,      1,       0,        1,       0,      1,     1,       1,        1 };
+	int[] integerType =			new[] {  1,      1,       1,        1,       1,      1,     0,       0,        0 };
+	string[] vertexBaseType =	new[] { "UByte","Byte",  "UShort", "Short", "UInt", "Int", "Float", "Double",  "Half" };
+	int[] structSizes =			new[] {  3,      3,       6,        6,       12,      12,    12,      24,        6 };
+
+	for (int i = 0; i < underlyingType.Length; i++) {
+		string className = String.Format("Vertex3{0}", postfixes[i]);
+		string postfix = postfixes[i];
+		string vertex4Name = String.Format("Vertex4{0}", postfixes[i]);
+		string baseType = underlyingType[i];
+		int structSize = structSizes[i];
+		string zero = zeroes[i], one = ones[i];
+		string min = mins[i], max = maxs[i];
+#>
+	/// <summary>
+	/// Vertex value type (<#= baseType #> coordinates).
+	/// </summary>
+	[StructLayout(LayoutKind.Sequential, Pack = 1)]
+	[DebuggerDisplay("<#= className #>: X={x} Y={y} Z={z}")]
+	public struct <#= className #> : IEquatable<<#= className #>>
+	{
+		#region Constructors
+
+		/// <summary>
+		/// <#= className #> constructor.
+		/// </summary>
+		/// <param name="v">
+		/// A <see cref="<#= baseType #>"/> that specify the value of every component.
+		/// </param>
+		public <#= className #>(<#= baseType #> v) : this(v, v, v) { }
+
+		/// <summary>
+		/// <#= className #> constructor.
+		/// </summary>
+		/// <param name="v">
+		/// A <see cref="T:<#= baseType #>[]"/> that specify the value of every component.
+		/// </param>
+		public <#= className #>(<#= baseType #>[] v) : this(v[0], v[1], v[2]) { }
+
+		/// <summary>
+		/// <#= className #> constructor.
+		/// </summary>
+		/// <param name="x">
+		/// A <see cref="<#= baseType #>"/> that specify the X coordinate.
+		/// </param>
+		/// <param name="y">
+		/// A <see cref="<#= baseType #>"/> that specify the Y coordinate.
+		/// </param>
+		/// <param name="z">
+		/// A <see cref="<#= baseType #>"/> that specify the Z coordinate.
+		/// </param>
+		public <#= className #>(<#= baseType #> x, <#= baseType #> y, <#= baseType #> z)
+		{
+			this.x = x;
+			this.y = y;
+			this.z = z;
+		}
+
+		#endregion
+
+		#region Structure
+
+		/// <summary>
+		/// X coordinate for tridimensional vertex.
+		/// </summary>
+		public <#= baseType #> x;
+
+		/// <summary>
+		/// Y coordinate for tridimensional vertex.
+		/// </summary>
+		public <#= baseType #> y;
+
+		/// <summary>
+		/// Z coordinate for tridimensional vertex.
+		/// </summary>
+		public <#= baseType #> z;
+
+		/// <summary>
+		/// Structure size.
+		/// </summary>
+		public const int Size = <#= structSize #>;
+
+		#endregion
+
+		#region Arithmetic Operators
+
+<#
+		if (signedType[i] != 0) {
+#>
+		/// <summary>
+		/// Negate operator.
+		/// </summary>
+		/// <param name="v">
+		/// The <#= className #> to negate.
+		/// </param>
+		/// <returns>
+		/// It returns the negate of <paramref name="v"/>.
+		/// </returns>
+		public static <#= className #> operator -(<#= className #> v)
+		{
+			return (new <#= className #>((<#= baseType #>)(-v.x), (<#= baseType #>)(-v.y), (<#= baseType #>)(-v.z)));
+		}
+
+<#
+		}
+#>
+		/// <summary>
+		/// Add operator.
+		/// </summary>
+		/// <param name="v1">
+		/// A <see cref="<#= className #>"/> that specify the left operand.
+		/// </param>
+		/// <param name="v2">
+		/// A <see cref="<#= className #>"/> that specify the right operand.
+		/// </param>
+		/// <returns>
+		/// A <see cref="<#= className #>"/> that equals to the addition of <paramref name="v1"/> and <paramref name="v2"/>.
+		/// </returns>
+		public static <#= className #> operator +(<#= className #> v1, <#= className #> v2)
+		{
+			<#= className #> v;
+
+			v.x = (<#= baseType #>)(v1.x + v2.x);
+			v.y = (<#= baseType #>)(v1.y + v2.y);
+			v.z = (<#= baseType #>)(v1.z + v2.z);
+
+			return (v);
+		}
+
+		/// <summary>
+		/// Subtract operator.
+		/// </summary>
+		/// <param name="v1">
+		/// A <see cref="<#= className #>"/> that specify the left operand.
+		/// </param>
+		/// <param name="v2">
+		/// A <see cref="<#= className #>"/> that specify the right operand.
+		/// </param>
+		/// <returns>
+		/// A <see cref="<#= className #>"/> that equals to the subtraction of <paramref name="v1"/> and <paramref name="v2"/>.
+		/// </returns>
+		public static <#= className #> operator -(<#= className #> v1, <#= className #> v2)
+		{
+			<#= className #> v;
+
+			v.x = (<#= baseType #>)(v1.x - v2.x);
+			v.y = (<#= baseType #>)(v1.y - v2.y);
+			v.z = (<#= baseType #>)(v1.z - v2.z);
+
+			return (v);
+		}
+
+		/// <summary>
+		/// Scalar multiply operator.
+		/// </summary>
+		/// <param name="v1">
+		/// A <see cref="<#= className #>"/> that specify the left operand.
+		/// </param>
+		/// <param name="scalar">
+		/// A <see cref="Single"/> that specify the right operand.
+		/// </param>
+		/// <returns>
+		/// A <see cref="<#= className #>"/> that equals to the multiplication of <paramref name="v1"/> with <paramref name="scalar"/>.
+		/// </returns>
+		public static <#= className #> operator *(<#= className #> v1, float scalar)
+		{
+			<#= className #> v;
+
+			v.x = (<#= baseType #>)(v1.x * scalar);
+			v.y = (<#= baseType #>)(v1.y * scalar);
+			v.z = (<#= baseType #>)(v1.z * scalar);
+
+			return (v);
+		}
+
+		/// <summary>
+		/// Scalar multiply operator.
+		/// </summary>
+		/// <param name="v1">
+		/// A <see cref="<#= className #>"/> that specify the left operand.
+		/// </param>
+		/// <param name="scalar">
+		/// A <see cref="Double"/> that specify the right operand.
+		/// </param>
+		/// <returns>
+		/// A <see cref="<#= className #>"/> that equals to the multiplication of <paramref name="v1"/> with <paramref name="scalar"/>.
+		/// </returns>
+		public static <#= className #> operator *(<#= className #> v1, double scalar)
+		{
+			<#= className #> v;
+
+			v.x = (<#= baseType #>)(v1.x * scalar);
+			v.y = (<#= baseType #>)(v1.y * scalar);
+			v.z = (<#= baseType #>)(v1.z * scalar);
+
+			return (v);
+		}
+
+		/// <summary>
+		/// Scalar divide operator.
+		/// </summary>
+		/// <param name="v1">
+		/// A <see cref="<#= className #>"/> that specify the left operand.
+		/// </param>
+		/// <param name="scalar">
+		/// A <see cref="Single"/> that specify the right operand.
+		/// </param>
+		/// <returns>
+		/// A <see cref="<#= className #>"/> that equals to the division of <paramref name="v1"/> with <paramref name="scalar"/>.
+		/// </returns>
+		public static <#= className #> operator /(<#= className #> v1, float scalar)
+		{
+			<#= className #> v;
+
+			v.x = (<#= baseType #>)(v1.x / scalar);
+			v.y = (<#= baseType #>)(v1.y / scalar);
+			v.z = (<#= baseType #>)(v1.z / scalar);
+
+			return (v);
+		}
+
+		/// <summary>
+		/// Scalar divide operator.
+		/// </summary>
+		/// <param name="v1">
+		/// A <see cref="<#= className #>"/> that specify the left operand.
+		/// </param>
+		/// <param name="scalar">
+		/// A <see cref="Double"/> that specify the right operand.
+		/// </param>
+		/// <returns>
+		/// A <see cref="<#= className #>"/> that equals to the division of <paramref name="v1"/> with <paramref name="scalar"/>.
+		/// </returns>
+		public static <#= className #> operator /(<#= className #> v1, double scalar)
+		{
+			<#= className #> v;
+
+			v.x = (<#= baseType #>)(v1.x / scalar);
+			v.y = (<#= baseType #>)(v1.y / scalar);
+			v.z = (<#= baseType #>)(v1.z / scalar);
+
+			return (v);
+		}
+
+		/// <summary>
+		/// Dot product operator.
+		/// </summary>
+		/// <param name="v1">
+		/// A <see cref="<#= className #>"/> representing the left dot product operand.
+		/// </param>
+		/// <param name="v2">
+		/// A <see cref="<#= className #>"/> representing the right dot product operand.
+		/// </param>
+		/// <returns>
+		/// A <see cref="<#= className #>"/> representing the dot product between <paramref name="v1"/> and
+		/// <paramref name="v2"/>.
+		/// </returns>
+		public static float operator *(<#= className #> v1, <#= className #> v2)
+		{
+			return (float)(v1.x * v2.x + v1.y * v2.y + v1.z * v2.z);
+		}
+
+		/// <summary>
+		/// Cross product operator.
+		/// </summary>
+		/// <param name="v1">
+		/// A <see cref="<#= className #>"/> representing the left cross product operand.
+		/// </param>
+		/// <param name="v2">
+		/// A <see cref="<#= className #>"/> representing the right cross product operand.
+		/// </param>
+		/// <returns>
+		/// A <see cref="<#= className #>"/> representing the cross product between <paramref name="v1"/> and
+		/// <paramref name="v2"/>.
+		/// </returns>
+		public static Vertex3f operator ^(<#= className #> v1, <#= className #> v2)
+		{
+			Vertex3f v;
+
+			v.x = (float)(v1.y * v2.z - v1.z * v2.y);
+			v.y = (float)(v1.z * v2.x - v1.x * v2.z);
+			v.z = (float)(v1.x * v2.y - v1.y * v2.x);
+
+			return (v);
+		}
+
+<#
+		if (integerType[i] != 0) {
+#>
+		/// <summary>
+		/// Scalar multiply operator.
+		/// </summary>
+		/// <param name="v1">
+		/// A <see cref="<#= className #>"/> that specify the left operand.
+		/// </param>
+		/// <param name="scalar">
+		/// A <see cref="<#= baseType #>"/> that specify the right operand.
+		/// </param>
+		/// <returns>
+		/// A <see cref="<#= className #>"/> that equals to the multiplication of <paramref name="v1"/> with <paramref name="scalar"/>.
+		/// </returns>
+		public static <#= className #> operator *(<#= className #> v1, <#= baseType #> scalar)
+		{
+			<#= className #> v;
+
+			v.x = (<#= baseType #>)(v1.x * scalar);
+			v.y = (<#= baseType #>)(v1.y * scalar);
+			v.z = (<#= baseType #>)(v1.z * scalar);
+
+			return (v);
+		}
+
+		/// <summary>
+		/// Scalar divide operator.
+		/// </summary>
+		/// <param name="v1">
+		/// A <see cref="<#= className #>"/> that specify the left operand.
+		/// </param>
+		/// <param name="scalar">
+		/// A <see cref="<#= baseType #>"/> that specify the right operand.
+		/// </param>
+		/// <returns>
+		/// A <see cref="<#= className #>"/> that equals to the division of <paramref name="v1"/> with <paramref name="scalar"/>.
+		/// </returns>
+		public static <#= className #> operator /(<#= className #> v1, <#= baseType #> scalar)
+		{
+			<#= className #> v;
+
+			v.x = (<#= baseType #>)(v1.x / scalar);
+			v.y = (<#= baseType #>)(v1.y / scalar);
+			v.z = (<#= baseType #>)(v1.z / scalar);
+
+			return (v);
+		}
+<#
+		}
+#>
+
+		#endregion
+
+		#region Equality Operators
+
+		/// <summary>
+		/// Equality operator.
+		/// </summary>
+		/// <param name="v1"></param>
+		/// <param name="v2"></param>
+		/// <returns></returns>
+		public static bool operator ==(<#= className #> v1, <#= className #> v2)
+		{
+			return (v1.Equals(v2));
+		}
+
+		/// <summary>
+		/// Inequality operator.
+		/// </summary>
+		/// <param name="v1"></param>
+		/// <param name="v2"></param>
+		/// <returns></returns>
+		public static bool operator !=(<#= className #> v1, <#= className #> v2)
+		{
+			return (!v1.Equals(v2));
+		}
+
+		#endregion
+
+		#region Cast Operators
+
+		/// <summary>
+		/// Cast to <#= baseType #>[] operator.
+		/// </summary>
+		/// <param name="a">
+		/// A <see cref="<#= className #>"/> to be casted.
+		/// </param>
+		/// <returns>
+		/// A <see cref="T:<#= baseType #>[]"/> initialized with the vector components.
+		/// </returns>
+		public static implicit operator <#= baseType #>[](<#= className #> a)
+		{
+			return new[] { a.x, a.y, a.z };
+		}
+
+		/// <summary>
+		/// Cast to <#= vertex4Name #> operator.
+		/// </summary>
+		/// <param name="a">
+		/// A <see cref="<#= className #>"/> to be casted.
+		/// </param>
+		/// <returns>
+		/// A normalized <see cref="<#= vertex4Name #>"/> initialized with the vector components.
+		/// </returns>
+		public static implicit operator <#= vertex4Name #>(<#= className #> a)
+		{
+			return new <#= vertex4Name #>(a.x, a.y, a.z, <#= one #>);
+		}
+
+<# if (className != "Vertex3f") { /* explicit cast to Vertex3f and Vertex4f */ #>
+		/// <summary>
+		/// Cast to Vertex3f operator.
+		/// </summary>
+		/// <param name="a">
+		/// A <see cref="<#= className #>"/> to be casted.
+		/// </param>
+		/// <returns>
+		/// A <see cref="Vertex3f"/> initialized with the vector components.
+		/// </returns>
+		public static explicit operator Vertex3f(<#= className #> a)
+		{
+			return new Vertex3f((float)a.x, (float)a.y, (float)a.z);
+		}
+
+		/// <summary>
+		/// Cast to Vertex4f operator.
+		/// </summary>
+		/// <param name="a">
+		/// A <see cref="<#= className #>"/> to be casted.
+		/// </param>
+		/// <returns>
+		/// A <see cref="Vertex4f"/> initialized with the vector components.
+		/// </returns>
+		public static explicit operator Vertex4f(<#= className #> a)
+		{
+			return new Vertex4f((float)a.x, (float)a.y, (float)a.z, 1.0f);
+		}
+
+<# } else { /* explicit cast to Vertex3d and Vertex4d from Vertex3f */ #>
+		/// <summary>
+		/// Cast to Vertex3d operator.
+		/// </summary>
+		/// <param name="a">
+		/// A <see cref="<#= className #>"/> to be casted.
+		/// </param>
+		/// <returns>
+		/// A <see cref="Vertex3d"/> initialized with the vector components.
+		/// </returns>
+		public static implicit operator Vertex3d(<#= className #> a)
+		{
+			return new Vertex3d(a.x, a.y, a.z);
+		}
+
+		/// <summary>
+		/// Cast to Vertex4d operator.
+		/// </summary>
+		/// <param name="a">
+		/// A <see cref="<#= className #>"/> to be casted.
+		/// </param>
+		/// <returns>
+		/// A <see cref="Vertex4d"/> initialized with the vector components.
+		/// </returns>
+		public static implicit operator Vertex4d(<#= className #> a)
+		{
+			return new Vertex4d(a.x, a.y, a.z, 1.0);
+		}
+
+<# } #>
+		#endregion
+
+		#region Vertex Methods
+
+		/// <summary>
+		/// Compute tridimensional vertex module.
+		/// </summary>
+		/// <returns>
+		/// It returns the vertex vector module.
+		/// </returns>
+		public float Module()
+		{
+			return ((float)Math.Sqrt(ModuleSquared()));
+		}
+
+		/// <summary>
+		/// Compute tridimensional vertex module, squared.
+		/// </summary>
+		/// <returns>
+		/// It returns the vertex vector module, squared.
+		/// </returns>
+		public float ModuleSquared()
+		{
+			float x2 = (float)(x * x);
+			float y2 = (float)(y * y);
+			float z2 = (float)(z * z);
+
+			return (x2 + y2 + z2);
+		}
+
+		/// <summary>
+		/// Normalize vertex coordinates.
+		/// </summary>
+		public void Normalize()
+		{
+			float length = Module();
+
+			if (Math.Abs(length) >= Single.Epsilon)
+				this /= length;
+		}
+
+		/// <summary>
+		/// This vertex, but normalized.
+		/// </summary>
+		public <#= className #> Normalized
+		{
+			get
+			{
+				<#= className #> normalized = this;
+
+				normalized.Normalize();
+
+				return (normalized);
+			}
+		}
+
+		/// <summary>
+		/// Get the minimum of an array of <#= className #>, component-wise.
+		/// </summary>
+		/// <param name="v">
+		/// A <see cref="T:<#= className #>[]"/> that specifies the values to be processed.
+		/// </param>
+		/// <returns>
+		/// It returns the <#= className #> holding the minumum values.
+		/// </returns>
+		public static <#= className #> Min(params <#= className #>[] v)
+		{
+			if (v == null)
+				throw new ArgumentNullException("v");
+
+			<#= baseType #> x = (<#= baseType #>)<#= baseType #>.MaxValue, y = (<#= baseType #>)<#= baseType #>.MaxValue, z = (<#= baseType #>)<#= baseType #>.MaxValue;
+
+			for (int i = 0; i < v.Length; i++) {
+				x = (<#= baseType #>)Math.Min(x, v[i].x);
+				y = (<#= baseType #>)Math.Min(y, v[i].y);
+				z = (<#= baseType #>)Math.Min(z, v[i].z);
+			}
+
+			return (new <#= className #>(x, y, z));
+		}
+
+		/// <summary>
+		/// Get the minimum of an array of <#= className #>, component-wise.
+		/// </summary>
+		/// <param name="v">
+		/// A <see cref="T:<#= className #>*"/> that specifies the values to be processed.
+		/// </param>
+		/// <param name="count">
+		/// A <see cref="UInt32"/> that specifies how many elements to process.
+		/// </param>
+		/// <returns>
+		/// It returns the <#= className #> holding the minumum values.
+		/// </returns>
+		public unsafe static <#= className #> Min(<#= className #>* v, uint count)
+		{
+			if (v == null)
+				throw new ArgumentNullException("v");
+
+			<#= baseType #> x = (<#= baseType #>)<#= baseType #>.MaxValue, y = (<#= baseType #>)<#= baseType #>.MaxValue, z = (<#= baseType #>)<#= baseType #>.MaxValue;
+
+			for (uint i = 0; i < count; i++) {
+				x = (<#= baseType #>)Math.Min(x, v[i].x);
+				y = (<#= baseType #>)Math.Min(y, v[i].y);
+				z = (<#= baseType #>)Math.Min(z, v[i].z);
+			}
+
+			return (new <#= className #>(x, y, z));
+		}
+
+		/// <summary>
+		/// Get the maximum of an array of <#= className #>, component-wise.
+		/// </summary>
+		/// <param name="v">
+		/// A <see cref="T:<#= className #>[]"/> that specifies the values to be processed.
+		/// </param>
+		/// <returns>
+		/// It returns the <#= className #> holding the maximum values.
+		/// </returns>
+		public static <#= className #> Max(params <#= className #>[] v)
+		{
+			if (v == null)
+				throw new ArgumentNullException("v");
+			
+			<#= baseType #> x = (<#= baseType #>)<#= baseType #>.MinValue, y = (<#= baseType #>)<#= baseType #>.MinValue, z = (<#= baseType #>)<#= baseType #>.MinValue;
+
+			for (int i = 0; i < v.Length; i++) {
+				x = (<#= baseType #>)Math.Max(x, v[i].x);
+				y = (<#= baseType #>)Math.Max(y, v[i].y);
+				z = (<#= baseType #>)Math.Max(z, v[i].z);
+			}
+
+			return (new <#= className #>(x, y, z));
+		}
+
+		/// <summary>
+		/// Get the maximum of an array of <#= className #>, component-wise.
+		/// </summary>
+		/// <param name="v">
+		/// A <see cref="T:<#= className #>*"/> that specifies the values to be processed.
+		/// </param>
+		/// <param name="count">
+		/// A <see cref="UInt32"/> that specifies how many elements to process.
+		/// </param>
+		/// <returns>
+		/// It returns the <#= className #> holding the maximum values.
+		/// </returns>
+		public unsafe static <#= className #> Max(<#= className #>* v, uint count)
+		{
+			if (v == null)
+				throw new ArgumentNullException("v");
+			
+			<#= baseType #> x = (<#= baseType #>)<#= baseType #>.MinValue, y = (<#= baseType #>)<#= baseType #>.MinValue, z = (<#= baseType #>)<#= baseType #>.MinValue;
+
+			for (uint i = 0; i < count; i++) {
+				x = (<#= baseType #>)Math.Max(x, v[i].x);
+				y = (<#= baseType #>)Math.Max(y, v[i].y);
+				z = (<#= baseType #>)Math.Max(z, v[i].z);
+			}
+
+			return (new <#= className #>(x, y, z));
+		}
+
+		/// <summary>
+		/// Get the minimum and maximum of an array of <#= className #>, component-wise.
+		/// </summary>
+		/// <param name="v">
+		/// A <see cref="T:<#= className #>[]"/> that specifies the values to be processed.
+		/// </param>
+		/// <param name="min">
+		/// A <see cref="<#= className #>"/> that returns the minimum value.
+		/// </param>
+		/// <param name="max">
+		/// A <see cref="<#= className #>"/> that returns the maximum value.
+		/// </param>
+		public static void MinMax(<#= className #>[] v, out <#= className #> min, out <#= className #> max)
+		{
+			if (v == null)
+				throw new ArgumentNullException("v");
+			
+			<#= baseType #> minx = (<#= baseType #>)<#= baseType #>.MaxValue, miny = (<#= baseType #>)<#= baseType #>.MaxValue, minz = (<#= baseType #>)<#= baseType #>.MaxValue;
+			<#= baseType #> maxx = (<#= baseType #>)<#= baseType #>.MinValue, maxy = (<#= baseType #>)<#= baseType #>.MinValue, maxz = (<#= baseType #>)<#= baseType #>.MinValue;
+
+			for (uint i = 0; i < v.Length; i++) {
+				minx = (<#= baseType #>)Math.Min(minx, v[i].x); miny = (<#= baseType #>)Math.Min(miny, v[i].y); minz = (<#= baseType #>)Math.Min(minz, v[i].z);
+				maxx = (<#= baseType #>)Math.Max(maxx, v[i].x); maxy = (<#= baseType #>)Math.Max(maxy, v[i].y); maxz = (<#= baseType #>)Math.Max(maxz, v[i].z);
+			}
+
+			min = new <#= className #>(minx, miny, minz);
+			max = new <#= className #>(maxx, maxy, maxz);
+		}
+
+		/// <summary>
+		/// Get the minimum and maximum of an array of <#= className #>, component-wise.
+		/// </summary>
+		/// <param name="v">
+		/// A <see cref="T:<#= className #>*"/> that specifies the values to be processed.
+		/// </param>
+		/// <param name="count">
+		/// A <see cref="UInt32"/> that specifies how many elements to process.
+		/// </param>
+		/// <param name="min">
+		/// A <see cref="<#= className #>"/> that returns the minimum value.
+		/// </param>
+		/// <param name="max">
+		/// A <see cref="<#= className #>"/> that returns the maximum value.
+		/// </param>
+		public unsafe static void MinMax(<#= className #>* v, uint count, out <#= className #> min, out <#= className #> max)
+		{
+			if (v == null)
+				throw new ArgumentNullException("v");
+			
+			<#= baseType #> minx = (<#= baseType #>)<#= baseType #>.MaxValue, miny = (<#= baseType #>)<#= baseType #>.MaxValue, minz = (<#= baseType #>)<#= baseType #>.MaxValue;
+			<#= baseType #> maxx = (<#= baseType #>)<#= baseType #>.MinValue, maxy = (<#= baseType #>)<#= baseType #>.MinValue, maxz = (<#= baseType #>)<#= baseType #>.MinValue;
+
+			for (uint i = 0; i < count; i++) {
+				minx = (<#= baseType #>)Math.Min(minx, v[i].x); miny = (<#= baseType #>)Math.Min(miny, v[i].y); minz = (<#= baseType #>)Math.Min(minz, v[i].z);
+				maxx = (<#= baseType #>)Math.Max(maxx, v[i].x); maxy = (<#= baseType #>)Math.Max(maxy, v[i].y); maxz = (<#= baseType #>)Math.Max(maxz, v[i].z);
+			}
+
+			min = new <#= className #>(minx, miny, minz);
+			max = new <#= className #>(maxx, maxy, maxz);
+		}
+
+		#endregion
+<#
+		if (zero != null && one != null) {
+#>
+
+		#region Notable Vertex
+
+		/// <summary>
+		/// Origin vertex.
+		/// </summary>
+		public static readonly <#= className #> Zero = new <#= className #>(<#= zero #>);
+
+		/// <summary>
+		/// Unit vertex along all axes.
+		/// </summary>
+		public static readonly <#= className #> One = new <#= className #>(<#= one #>);
+
+		/// <summary>
+		/// Unit vertex along X axis.
+		/// </summary>
+		public static readonly <#= className #> UnitX = new <#= className #>(<#= one #>, <#= zero #>, <#= zero #>);
+
+		/// <summary>
+		/// Unit vertex along Y axis.
+		/// </summary>
+		public static readonly <#= className #> UnitY = new <#= className #>(<#= zero #>, <#= one #>, <#= zero #>);
+
+		/// <summary>
+		/// Unit vertex along Z axis.
+		/// </summary>
+		public static readonly <#= className #> UnitZ = new <#= className #>(<#= zero #>, <#= zero #>, <#= one #>);
+
+<#
+		if (min != null && max != null) {
+#>
+		/// <summary>
+		/// Vertex with lowest values.
+		/// </summary>
+		public static readonly <#= className #> Minimum = new <#= className #>(<#= min #>);
+
+		/// <summary>
+		/// Vertex with highest values.
+		/// </summary>
+		public static readonly <#= className #> Maximum = new <#= className #>(<#= max #>);
+<#
+		} else {
+#>
+		/// <summary>
+		/// Vertex with lowest values.
+		/// </summary>
+		public static readonly <#= className #> Minimum = new <#= className #>(<#= baseType #>.MinValue);
+
+		/// <summary>
+		/// Vertex with highest values.
+		/// </summary>
+		public static readonly <#= className #> Maximum = new <#= className #>(<#= baseType #>.MaxValue);
+<#
+		}
+#>
+
+		#endregion
+
+<#
+		}
+#>
+		#region IEquatable Implementation
+
+		/// <summary>
+		/// Indicates whether the this <#= className #> is equal to another <#= className #>, tolerating an absolute error.
+		/// </summary>
+		/// <param name="other">
+		/// The <see cref="<#= className #>"/> to compare with this <#= className #>.
+		/// </param>
+		/// <param name="precision">
+		/// The <see cref="<#= baseType #>"/> that specifies the maximum absolute error tollerance.
+		/// </param>
+		/// <returns>
+		/// It returns true if the this <#= className #> is equal to <paramref name="other"/>; otherwise, false.
+		/// </returns>
+		public bool Equals(<#= className #> other, <#= baseType #> precision)
+		{
+			if (Math.Abs(x - other.x) > precision)
+				return (false);
+			if (Math.Abs(y - other.y) > precision)
+				return (false);
+			if (Math.Abs(z - other.z) > precision)
+				return (false);
+
+			return (true);
+		}
+
+		/// <summary>
+		/// Indicates whether the this <#= className #> is equal to another <#= className #>.
+		/// </summary>
+		/// <param name="other">
+		/// The <see cref="<#= className #>"/> to compare with this <#= className #>.
+		/// </param>
+		/// <returns>
+		/// It returns true if the this <#= className #> is equal to <paramref name="other"/>; otherwise, false.
+		/// </returns>
+		public bool Equals(<#= className #> other)
+		{
+			return (x == other.x && y == other.y && z == other.z);
+		}
+
+		/// <summary>
+		/// Determines whether the specified <see cref="T:System.Object"/> is equal to the current <see cref="T:System.Object"/>.
+		/// </summary>
+		/// <param name="obj">
+		/// The <see cref="T:System.Object"/> to compare with the current <see cref="T:System.Object"/>.
+		/// </param>
+		/// <returns>
+		/// It returns true if the specified <see cref="T:System.Object"/> is equal to the current <see cref="T:System.Object"/>; otherwise, false.
+		/// </returns>
+		public override bool Equals(object obj)
+		{
+			if (ReferenceEquals(null, obj))
+				return (false);
+			if (obj.GetType() != typeof(<#= className #>))
+				return (false);
+			
+			return (Equals((<#= className #>)obj));
+		}
+
+		/// <summary>
+		/// Serves as a hash function for a particular type. <see cref="M:System.Object.GetHashCode"/> is suitable for
+		/// use in hashing algorithms and data structures like a hash table.
+		/// </summary>
+		/// <returns>
+		/// A hash code for the current <see cref="T:System.Object"/>.
+		/// </returns>
+		public override int GetHashCode()
+		{
+			unchecked {
+				int result = x.GetHashCode();
+				result = (result * 397) ^ y.GetHashCode();
+				result = (result * 397) ^ z.GetHashCode();
+
+				return result;
+			}
+		}
+
+		#endregion
+
+		#region Object Overrides
+
+<#
+		if (integerType[i] != 0) {
+#>
+		/// <summary>
+		/// Stringify this <#= className #>.
+		/// </summary>
+		/// <returns>
+		/// Returns a <see cref="String"/> that represents this <#= className #>.
+		/// </returns>
+		public override string ToString()
+		{
+			return (String.Format("|{0}, {1}, {2}|", x, y, z));
+		}
+<#
+		} else {
+#>
+		/// <summary>
+		/// Stringify this <#= className #>.
+		/// </summary>
+		/// <returns>
+		/// Returns a <see cref="String"/> that represents this <#= className #>.
+		/// </returns>
+		public override string ToString()
+		{
+			return (String.Format("|{0:F4}, {1:F4}, {2:F4}|", x, y, z));
+		}
+<#
+		}
+#>
+
+		#endregion
+	}
+
+<#
+}
+#>
+}

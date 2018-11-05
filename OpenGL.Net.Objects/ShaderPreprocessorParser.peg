@@ -1,0 +1,57 @@
+﻿@namespace OpenGL.Objects
+@classname ShaderPreprocessorParser
+@accessibility internal
+
+start <int>
+	= _ value:logical_or _ EOF { value }
+
+logical_or <int> -memoize
+	= left:logical_or _ "||" _ right:logical_and { (left != 0) || (right != 0) ? 1 : 0 }
+	/ logical_and 
+
+logical_and <int> -memoize
+	= left:logical_and _ "&&" _ right:equality { (left != 0) && (right != 0) ? 1 : 0 }
+	/ equality 
+
+equality <int> -memoize
+	= left:equality _ "==" _ right:relational { left == right ? 1 : 0 }
+	/ left:equality _ "!=" _ right:relational { left != right ? 1 : 0 }
+	/ relational
+
+relational <int> -memoize
+	= left:relational _ "<" _ right:additive { left < right ? 1 : 0 }
+	/ left:relational _ ">" _ right:additive { left > right ? 1 : 0 }
+	/ left:relational _ "<=" _ right:additive { left <= right ? 1 : 0 }
+	/ left:relational _ ">=" _ right:additive { left >= right ? 1 : 0 }
+	/ additive
+
+additive <int> -memoize
+	= left:additive _ "+" _ right:multiplicative { left + right }
+	/ left:additive _ "-" _ right:multiplicative { left - right }
+	/ multiplicative
+
+multiplicative <int> -memoize
+	= left:multiplicative _ "*" _ right:unary { left * right }
+	/ left:multiplicative _ "/" _ right:unary { left / right }
+	/ unary
+
+unary <int> -memoize
+	= "defined" _ "(" _ literal:("" [A-Za-z_][A-Za-z0-9_]*) _ ")" { IsDefined(literal) ? 1 : 0 }
+	/ "defined" _ literal:("" [A-Za-z_][A-Za-z0-9_]*) { IsDefined(literal) ? 1 : 0 }
+	/ literal:literal { Int32.Parse(literal) }
+	/ value
+	/ "!" unary:unary { unary != 0 ? 0 : 1 }
+	/ "-" unary:unary { -unary }
+	/ "(" _ unary:logical_or _ ")" { unary }
+
+value <int>
+	= value:("" [0-9]+) { Int32.Parse(value) }
+
+literal <string>
+	= value:("" [A-Za-z_][A-Za-z0-9_]*) { GetSymbol(value) }
+
+_ = [ \t]*
+
+EOF
+  = !.
+  / unexpected:. #error{ "Unexpected character '" + unexpected + "'." }
