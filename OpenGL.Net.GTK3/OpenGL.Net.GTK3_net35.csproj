@@ -121,12 +121,6 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\OpenGL.Net\OpenGL.Net_net35.csproj">
-      <Project>{abb8dfa8-473a-4fc1-85c0-e21680772a58}</Project>
-      <Name>OpenGL.Net_net35</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\gtk-sharp-3.3.22.6.4\build\net40\gtk-sharp-3.targets" Condition="Exists('..\packages\gtk-sharp-3.3.22.6.4\build\net40\gtk-sharp-3.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
