@@ -1,6 +1,4 @@
 # Uriel
-OpenGL Shader Toy Written in C# 
+OpenGL Shader Toy Written in C#, similar to https://www.shadertoy.com 
 
 Utilizes the OpenGL.Net library
-
-Right now this is a hacked up fork of OpenGL.Net samples - pending work is to fix that.
