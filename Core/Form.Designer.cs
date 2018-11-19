@@ -1,4 +1,4 @@
-﻿namespace HelloTriangle
+﻿namespace Uriel
 {
 	partial class Form
 	{
@@ -19,12 +19,6 @@
 			base.Dispose(disposing);
 		}
 
-		#region Codice generato da Progettazione Windows Form
-
-		/// <summary>
-		/// Metodo necessario per il supporto della finestra di progettazione. Non modificare
-		/// il contenuto del metodo con l'editor di codice.
-		/// </summary>
 		private void InitializeComponent()
 		{
 			this.RenderControl = new OpenGL.GlControl();
@@ -46,13 +40,10 @@
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
 			this.ClientSize = new System.Drawing.Size(1080, 768);
 			this.Controls.Add(this.RenderControl);
-			this.Name = "SampleForm";
-			this.Text = "Hello triangle";
+			this.Name = "Uriel SampleForm";
+			this.Text = "Uriel";
 			this.ResumeLayout(false);
-
 		}
-
-		#endregion
 
 		private OpenGL.GlControl RenderControl;
 	}

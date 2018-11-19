@@ -24,7 +24,7 @@ using System.Windows.Forms;
 
 using Khronos;
 
-namespace HelloTriangle
+namespace Uriel
 {
 	static class Program
 	{

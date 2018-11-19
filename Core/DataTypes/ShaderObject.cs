@@ -2,7 +2,7 @@
 using System;
 using System.Text;
 
-namespace HelloTriangle.DataTypes
+namespace Uriel.DataTypes
 {
     /// <summary>
     /// Shader object abstraction.

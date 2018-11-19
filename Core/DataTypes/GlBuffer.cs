@@ -1,7 +1,7 @@
 ﻿using OpenGL;
 using System;
 
-namespace HelloTriangle.DataTypes
+namespace Uriel.DataTypes
 {
     /// <summary>
     /// Buffer abstraction.

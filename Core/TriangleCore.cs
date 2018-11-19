@@ -1,4 +1,4 @@
-﻿using HelloTriangle.DataTypes;
+﻿using Uriel.DataTypes;
 using OpenGL;
 using System;
 using System.Collections.Generic;
@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HelloTriangle
+namespace Uriel
 {
     public class TriangleCore : IDisposable
     {

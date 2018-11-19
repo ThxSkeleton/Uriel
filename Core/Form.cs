@@ -25,20 +25,19 @@ using System.Text;
 
 using Khronos;
 using OpenGL;
-using HelloTriangle.DataTypes;
 
-namespace HelloTriangle
+namespace Uriel
 {
-	/// <summary>
-	/// Sample drawing a simple, rotating and colored triangle.
-	/// </summary>
-	/// <remarks>
-	/// Supports:
-	/// - OpenGL 3.2
-	/// - OpenGL 1.1/1.0 (deprecated)
-	/// - OpenGL ES2
-	/// </remarks>
-	public partial class Form : System.Windows.Forms.Form
+    /// <summary>
+    /// Sample drawing a simple, rotating and colored triangle.
+    /// </summary>
+    /// <remarks>
+    /// Supports:
+    /// - OpenGL 3.2
+    /// - OpenGL 1.1/1.0 (deprecated)
+    /// - OpenGL ES2
+    /// </remarks>
+    public partial class Form : System.Windows.Forms.Form
 	{
         private TriangleCore triangleCore;
 
