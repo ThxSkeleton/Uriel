@@ -1,0 +1,17 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<PropertyGroup>
+		<PackagesRoot>Z:\Packages</PackagesRoot>
+	</PropertyGroup>
+	<!-- OpenGL Dependencies -->
+	<PropertyGroup>
+		<NumericsVectors>$(PackagesRoot)\System.Numerics.Vectors.4.3.0\lib\net46</NumericsVectors>
+		<CompilerServicesUnsafe>$(PackagesRoot)\System.Runtime.CompilerServices.Unsafe.4.3.0\lib\netstandard1.0</CompilerServicesUnsafe>
+	</PropertyGroup>
+	<!-- Full Nugets for OpenGL -->
+	<!-- Don't Work Yet -->
+	<!-- <PropertyGroup>                                                                                 -->
+	<!-- 	<OpenGLNetMath>$(PackagesRoot)\OpenGL.Net.Math.0.7.1\lib\net461</OpenGLNetMath>              -->
+	<!-- 	<OpenGLNetWinforms>$(PackagesRoot)\OpenGL.Net.WinForms.0.7.1\lib\net461</OpenGLNetWinforms>  -->
+	<!-- 	<OpenGLNet>$(PackagesRoot)\OpenGL.Net.0.7.1\lib\net461</OpenGLNet>                           -->
+	<!-- </PropertyGroup>                                                                                -->
+</Project>
