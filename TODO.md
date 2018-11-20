@@ -13,10 +13,11 @@
 * Display FPS + Time on status bar
 
 ## Uriel v0.7: Optimization release
+* Learn how milisecond level timing is handled 
 * Log4Net, with appropriate settings to be able to handle per-frame log statements
 * Expectation: 90 FPS for Small Window
 * Expectation: 60 FPS for Giant Window
-* See if we can detect 
+* Profile GC - is it even an issue?
 
 ## Uriel v0.8: Shader Loading
 * Visual Studio Workflow / "Plugin"
