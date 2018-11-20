@@ -36,6 +36,14 @@
 
 # Additional Features
 
+## Build System
+* CI framework
+* Build Drop
+* Actual Versioning System
+
+## Demos and Compilations
+* Self explanatory
+
 ## Movie Mode
 * Runs as per config
 * Support Slower Time
