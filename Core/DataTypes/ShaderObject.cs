@@ -12,7 +12,9 @@ namespace Uriel.DataTypes
         public ShaderObject(ShaderType shaderType, string[] source)
         {
             if (source == null)
+            {
                 throw new ArgumentNullException(nameof(source));
+            }
 
             // Create
             ShaderName = Gl.CreateShader(shaderType);
@@ -24,9 +26,15 @@ namespace Uriel.DataTypes
             int compiled;
 
             Gl.GetShader(ShaderName, ShaderParameterName.CompileStatus, out compiled);
-            if (compiled != 0)
-                return;
 
+            if (compiled != 1)
+            {
+                OnError();
+            }
+        }
+
+        public void OnError()
+        {
             // Throw exception on compilation errors
             const int logMaxLength = 1024;
 
@@ -37,6 +45,7 @@ namespace Uriel.DataTypes
 
             throw new InvalidOperationException($"unable to compile shader: {infolog}");
         }
+
 
         public readonly uint ShaderName;
 

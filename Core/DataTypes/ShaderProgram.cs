@@ -1,5 +1,6 @@
 ﻿using OpenGL;
 using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Uriel.DataTypes
@@ -10,12 +11,26 @@ namespace Uriel.DataTypes
     /// </summary>
     public class ShaderProgram : IDisposable
     {
-        public ShaderProgram(string[] vertexSource, string[] fragmentSource)
+        private readonly List<string> VertexSource;
+        private readonly List<string> FragmentSource;
+
+        public bool LinkedStatus;
+        public uint ProgramName;
+        public int LocationMVP;
+        public int LocationPosition;
+        public int LocationColor;
+
+        public ShaderProgram(List<string> vertexSource, List<string> fragmentSource)
         {
+            this.VertexSource = vertexSource;
+            this.FragmentSource = fragmentSource;
+        }
+
+        public void Link() { 
             // Create vertex and frament shaders
             // Note: they can be disposed after linking to program; resources are freed when deleting the program
-            using (ShaderObject vObject = new ShaderObject(ShaderType.VertexShader, vertexSource))
-            using (ShaderObject fObject = new ShaderObject(ShaderType.FragmentShader, fragmentSource))
+            using (ShaderObject vObject = new ShaderObject(ShaderType.VertexShader, VertexSource.ToArray()))
+            using (ShaderObject fObject = new ShaderObject(ShaderType.FragmentShader, FragmentSource.ToArray()))
             {
                 // Create program
                 ProgramName = Gl.CreateProgram();
@@ -25,48 +40,50 @@ namespace Uriel.DataTypes
                 // Link program
                 Gl.LinkProgram(ProgramName);
 
-                // Check linkage status
                 int linked;
 
                 Gl.GetProgram(ProgramName, ProgramProperty.LinkStatus, out linked);
 
-                if (linked == 0)
-                {
-                    const int logMaxLength = 1024;
+                this.LinkedStatus = linked != 0;
 
-                    StringBuilder infolog = new StringBuilder(logMaxLength);
-                    int infologLength;
-
-                    Gl.GetProgramInfoLog(ProgramName, 1024, out infologLength, infolog);
-
-                    throw new InvalidOperationException($"unable to link program: {infolog}");
-                }
-
-                // Get uniform locations
-                if ((LocationMVP = Gl.GetUniformLocation(ProgramName, "uMVP")) < 0)
-                {
-                    throw new InvalidOperationException("no uniform uMVP");
-                }
-
-                // Get attributes locations
-                if ((LocationPosition = Gl.GetAttribLocation(ProgramName, "aPosition")) < 0)
-                {
-                    throw new InvalidOperationException("no attribute aPosition");
-                }
-                if ((LocationColor = Gl.GetAttribLocation(ProgramName, "aColor")) < 0)
-                {
-                    throw new InvalidOperationException("no attribute aColor");
-                }
+                LocationMVP = Gl.GetUniformLocation(ProgramName, "uMVP");
+                LocationPosition = Gl.GetAttribLocation(ProgramName, "aPosition");
+                LocationColor = Gl.GetAttribLocation(ProgramName, "aColor");
             }
+
+            Validate();
         }
 
-        public readonly uint ProgramName;
+        private void Validate()
+        {
+            if (!LinkedStatus)
+            {
+                const int logMaxLength = 1024;
 
-        public readonly int LocationMVP;
+                StringBuilder infolog = new StringBuilder(logMaxLength);
+                int infologLength;
 
-        public readonly int LocationPosition;
+                Gl.GetProgramInfoLog(ProgramName, 1024, out infologLength, infolog);
 
-        public readonly int LocationColor;
+                throw new InvalidOperationException($"unable to link program: {infolog}");
+            }
+
+            // Get uniform locations
+            if (LocationMVP < 0)
+            {
+                throw new InvalidOperationException("no uniform uMVP");
+            }
+
+            // Get attributes locations
+            if (LocationPosition < 0)
+            {
+                throw new InvalidOperationException("no attribute aPosition");
+            }
+            if (LocationColor < 0)
+            {
+                throw new InvalidOperationException("no attribute aColor");
+            }
+        }
 
         public void Dispose()
         {

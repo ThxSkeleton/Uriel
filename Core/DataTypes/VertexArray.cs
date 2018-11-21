@@ -11,7 +11,9 @@ namespace Uriel.DataTypes
         public VertexArray(ShaderProgram program, float[] positions, float[] colors)
         {
             if (program == null)
+            {
                 throw new ArgumentNullException(nameof(program));
+            }
 
             // Allocate buffers referenced by this vertex array
             _BufferPosition = new GlBuffer(positions);
