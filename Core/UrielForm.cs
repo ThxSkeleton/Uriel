@@ -5,19 +5,23 @@ using System.Collections.Generic;
 using System.Text;
 using System.Windows.Forms;
 using Uriel.DataTypes;
+using log4net;
 
 namespace Uriel
 {
     public class UrielForm : Form
     {
         private GlControl RenderControl;
+        private readonly ILog logger;
+
 
         ShaderProgram _Program;
         VertexArray _VertexArray;
         private FrameTracker FrameTracker;
 
-        public UrielForm()
+        public UrielForm(ILog logger)
         {
+            this.logger = logger;
             InitializeComponent();
         }
 
@@ -198,7 +202,7 @@ namespace Uriel
         #endregion
 
 
-        private static void GLDebugProc(DebugSource source, DebugType type, uint id, DebugSeverity severity, int length, IntPtr message, IntPtr userParam)
+        private void GLDebugProc(DebugSource source, DebugType type, uint id, DebugSeverity severity, int length, IntPtr message, IntPtr userParam)
         {
             string strMessage;
 
@@ -208,7 +212,7 @@ namespace Uriel
                 strMessage = Encoding.ASCII.GetString((byte*)message.ToPointer(), length);
             }
 
-            Console.WriteLine($"{source}, {type}, {severity}: {strMessage}");
+            logger.Info($"{source}, {type}, {severity}: {strMessage}");
         }
 
         protected override void Dispose(bool disposing)

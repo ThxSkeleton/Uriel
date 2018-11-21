@@ -23,6 +23,7 @@ using System;
 using System.Windows.Forms;
 
 using Khronos;
+using log4net;
 
 namespace Uriel
 {
@@ -34,14 +35,20 @@ namespace Uriel
 		[STAThread]
 		static void Main()
 		{
-			KhronosApi.Log += delegate(object sender, KhronosLogEventArgs e) {
-				Console.WriteLine(e.ToString());
+            string declaringType = System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.ToString();
+
+            ILog logger = LogManager.GetLogger(declaringType);
+
+            logger.Info("Starting");
+
+            KhronosApi.Log += delegate(object sender, KhronosLogEventArgs e) {
+                logger.Info(e.ToString());
 			};
 			KhronosApi.LogEnabled = false;
 
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new UrielForm());
+            Application.Run(new UrielForm(logger));
 		}
 	}
 }

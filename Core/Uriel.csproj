@@ -112,6 +112,9 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <None Include="Log4net.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -137,10 +140,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-  	<Reference Include="Log4Net">                         
-  		<HintPath>$(Log4Net)\log4net.dll</HintPath>        
-  	</Reference>    
-  
+    <Reference Include="Log4Net">
+      <HintPath>$(Log4Net)\log4net.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <!-- TODO - The OpenGL Nuget is currently outdated compared to the sample code, which Uriel is based on. -->
   <!-- Until new Nuget is uploaded, switch to the 'full build' approach. -->
