@@ -6,6 +6,7 @@
 	<PropertyGroup>
 		<NumericsVectors>$(PackagesRoot)\System.Numerics.Vectors.4.3.0\lib\net46</NumericsVectors>
 		<CompilerServicesUnsafe>$(PackagesRoot)\System.Runtime.CompilerServices.Unsafe.4.3.0\lib\netstandard1.0</CompilerServicesUnsafe>
+		<Log4Net>$(PackagesRoot)\log4net.2.0.8\lib\net45-full</Log4Net>
 	</PropertyGroup>
 	<!-- Full Nugets for OpenGL -->
 	<!-- Don't Work Yet -->

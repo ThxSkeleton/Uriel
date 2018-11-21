@@ -136,6 +136,12 @@
       <Name>OpenGL.Net_net461</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+  	<Reference Include="Log4Net">                         
+  		<HintPath>$(Log4Net)\log4net.dll</HintPath>        
+  	</Reference>    
+  
+  </ItemGroup>
   <!-- TODO - The OpenGL Nuget is currently outdated compared to the sample code, which Uriel is based on. -->
   <!-- Until new Nuget is uploaded, switch to the 'full build' approach. -->
   <!-- -->
