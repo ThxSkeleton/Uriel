@@ -13,15 +13,15 @@ namespace Uriel
     {
         private GlControl RenderControl;
         private readonly ILog logger;
-
-
+        private readonly UrielConfiguration configuration;
         ShaderProgram _Program;
         VertexArray _VertexArray;
         private FrameTracker FrameTracker;
 
-        public UrielForm(ILog logger)
+        public UrielForm(ILog logger, UrielConfiguration configuration)
         {
             this.logger = logger;
+            this.configuration = configuration;
             InitializeComponent();
         }
 
@@ -33,7 +33,7 @@ namespace Uriel
             // RenderControl
             // 
 
-            RenderControlConfiguration.Configure(RenderControl);
+            RenderControlConfiguration.Configure(RenderControl, configuration);
 
             this.RenderControl.ContextCreated += new EventHandler<GlControlEventArgs>(this.RenderControl_ContextCreated);
             this.RenderControl.ContextDestroying += new EventHandler<GlControlEventArgs>(this.RenderControl_ContextDestroying);
@@ -44,7 +44,7 @@ namespace Uriel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = AutoScaleMode.None;
-            this.ClientSize = new System.Drawing.Size(1080, 768);
+            this.ClientSize = new System.Drawing.Size(this.configuration.Length, this.configuration.Height);
             this.Controls.Add(this.RenderControl);
             this.Name = "Uriel SampleForm";
             this.Text = "Uriel";

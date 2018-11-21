@@ -4,7 +4,7 @@ namespace Uriel
 {
     public class RenderControlConfiguration
     {
-        public static void Configure(GlControl renderControl)
+        public static void Configure(GlControl renderControl, UrielConfiguration configuration)
         {
             renderControl.Animation = true;
             renderControl.AnimationTimer = false;
@@ -15,7 +15,7 @@ namespace Uriel
             renderControl.Location = new System.Drawing.Point(0, 0);
             renderControl.MultisampleBits = ((uint)(0u));
             renderControl.Name = "RenderControl";
-            renderControl.Size = new System.Drawing.Size(1080, 768);
+            renderControl.Size = new System.Drawing.Size(configuration.Length, configuration.Height);
             renderControl.StencilBits = ((uint)(0u));
             renderControl.TabIndex = 0;
         }

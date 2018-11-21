@@ -29,15 +29,30 @@ namespace Uriel
 {
 	static class Program
 	{
-		/// <summary>
-		/// The main entry point for the application.
-		/// </summary>
-		[STAThread]
-		static void Main()
-		{
+        /// <summary>
+        /// The main entry point for the application.
+        /// </summary>
+        [STAThread]
+        static void Main()
+        {
             string declaringType = System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.ToString();
 
-            ILog logger = LogManager.GetLogger(declaringType);
+            UrielConfiguration config = new UrielConfiguration()
+            {
+                Length = 1200,
+                Height = 800,
+                LoggingEnabled = false
+            };
+
+            ILog logger;
+            if (config.LoggingEnabled)
+            {
+                logger = LogManager.GetLogger(declaringType);
+            }
+            else
+            {
+                logger = LogManager.GetLogger("SpecialLogger");
+            }
 
             logger.Info("Starting");
 
@@ -48,7 +63,7 @@ namespace Uriel
 
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new UrielForm(logger));
+            Application.Run(new UrielForm(logger, config));
 		}
 	}
 }
