@@ -12,15 +12,14 @@ namespace Uriel
     public class UrielForm : Form
     {
         private GlControl RenderControl;
-        private readonly ILog logger;
         private readonly UrielConfiguration configuration;
         ShaderProgram _Program;
-        VertexArray _VertexArray;
+        IndexedVertexArray _VertexArray;
         private FrameTracker FrameTracker;
 
-        public UrielForm(ILog logger, UrielConfiguration configuration)
+        public UrielForm(UrielConfiguration configuration)
         {
-            this.logger = logger;
+
             this.configuration = configuration;
             InitializeComponent();
         }
@@ -95,11 +94,12 @@ namespace Uriel
                 Gl.Enable(EnableCap.Multisample);
             }
 
-
             _Program = new ShaderProgram(new List<string>(_VertexSourceGL), new List<string>(_FragmentSourceGL));
-            _VertexArray = new VertexArray(_Program, _ArrayPosition, _ArrayColor);
+            _VertexArray = new IndexedVertexArray(_Program, _ArrayPosition, _ArrayIndex);
 
             _Program.Link();
+
+            GlErrorLogger.Check();
 
             FrameTracker = new FrameTracker();
         }
@@ -125,9 +125,11 @@ namespace Uriel
             Gl.UniformMatrix4f(_Program.LocationMVP, 1, false, projection * modelview);
             // Use the vertex array
             Gl.BindVertexArray(_VertexArray.ArrayName);
+            GlErrorLogger.Check();
             // Draw triangle
             // Note: vertex attributes are streamed from GPU memory
-            Gl.DrawArrays(PrimitiveType.Triangles, 0, 3);
+            Gl.DrawElements(PrimitiveType.Triangles, _VertexArray.Count, DrawElementsType.UnsignedInt, IntPtr.Zero);
+            GlErrorLogger.Check();
 
             this.FrameTracker.EndFrame();
         }
@@ -139,17 +141,17 @@ namespace Uriel
         /// </summary>
         private static readonly float[] _ArrayPosition = new float[] {
             0.0f, 0.0f,
-            1.0f, 1.0f,
-            2.0f, 2.5f
+            1.0f, 0.0f,
+            0.0f, 1.0f,
+            1.0f, 1.0f
         };
 
         /// <summary>
-        /// Vertex color array.
+        /// Vertex Index array.
         /// </summary>
-        private static readonly float[] _ArrayColor = new float[] {
-            1.0f, 0.0f, 0.0f,
-            0.0f, 1.0f, 0.0f,
-            0.0f, 0.0f, 1.0f
+        private static readonly uint[] _ArrayIndex = new uint[] {
+            0, 1, 2,
+            2, 1, 3
         };
 
         #endregion
@@ -161,7 +163,6 @@ namespace Uriel
             "uniform mat4 uMVP;\n",
             "in vec2 aPosition;\n",
             "in vec3 aColor;\n",
-            "out vec3 vColor;\n",
             "void main() {\n",
             "	gl_Position = uMVP * vec4(aPosition, 0.0, 1.0);\n",
             "	vColor = aColor;\n",
@@ -172,11 +173,8 @@ namespace Uriel
             "#version 150 compatibility\n",
             "uniform mat4 uMVP;\n",
             "in vec2 aPosition;\n",
-            "in vec3 aColor;\n",
-            "out vec3 vColor;\n",
             "void main() {\n",
             "	gl_Position = uMVP * vec4(aPosition, 0.0, 1.0);\n",
-            "	vColor = aColor;\n",
             "}\n"
         };
 
@@ -190,12 +188,9 @@ namespace Uriel
 
         private readonly string[] _FragmentSourceGL = {
             "#version 150 compatibility\n",
-            "in vec3 vColor;\n",
             "void main() {\n",
-            //"   vec3 foo = vColor;\n",
             "   vec3 green = vec3(0.0f, 1.0f, 0.0f);\n",
-            "   vec3 target = green + vColor;\n",
-            "	gl_FragColor = vec4(target, 1.0);\n",
+            "	gl_FragColor = vec4(green, 1.0);\n",
             "}\n"
         };
 
@@ -212,7 +207,7 @@ namespace Uriel
                 strMessage = Encoding.ASCII.GetString((byte*)message.ToPointer(), length);
             }
 
-            logger.Info($"{source}, {type}, {severity}: {strMessage}");
+            StaticLogger.Logger.Info($"{source}, {type}, {severity}: {strMessage}");
         }
 
         protected override void Dispose(bool disposing)

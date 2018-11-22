@@ -18,7 +18,6 @@ namespace Uriel.DataTypes
         public uint ProgramName;
         public int LocationMVP;
         public int LocationPosition;
-        public int LocationColor;
 
         public ShaderProgram(List<string> vertexSource, List<string> fragmentSource)
         {
@@ -48,7 +47,6 @@ namespace Uriel.DataTypes
 
                 LocationMVP = Gl.GetUniformLocation(ProgramName, "uMVP");
                 LocationPosition = Gl.GetAttribLocation(ProgramName, "aPosition");
-                LocationColor = Gl.GetAttribLocation(ProgramName, "aColor");
             }
 
             Validate();
@@ -78,10 +76,6 @@ namespace Uriel.DataTypes
             if (LocationPosition < 0)
             {
                 throw new InvalidOperationException("no attribute aPosition");
-            }
-            if (LocationColor < 0)
-            {
-                throw new InvalidOperationException("no attribute aColor");
             }
         }
 

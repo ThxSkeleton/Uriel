@@ -35,35 +35,25 @@ namespace Uriel
         [STAThread]
         static void Main()
         {
-            string declaringType = System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.ToString();
-
             UrielConfiguration config = new UrielConfiguration()
             {
                 Length = 1200,
                 Height = 800,
-                LoggingEnabled = false
+                LoggingEnabled = true
             };
 
-            ILog logger;
-            if (config.LoggingEnabled)
-            {
-                logger = LogManager.GetLogger(declaringType);
-            }
-            else
-            {
-                logger = LogManager.GetLogger("SpecialLogger");
-            }
+            StaticLogger.Create(config.LoggingEnabled);
 
-            logger.Info("Starting");
+            StaticLogger.Logger.Info("Starting");
 
             KhronosApi.Log += delegate(object sender, KhronosLogEventArgs e) {
-                logger.Info(e.ToString());
+                StaticLogger.Logger.Info(e.ToString());
 			};
 			KhronosApi.LogEnabled = false;
 
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new UrielForm(logger, config));
+            Application.Run(new UrielForm(config));
 		}
 	}
 }

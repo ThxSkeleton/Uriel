@@ -91,14 +91,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataTypes\GlBuffer.cs" />
+    <Compile Include="DataTypes\IndexedVertexArray.cs" />
     <Compile Include="DataTypes\ShaderObject.cs" />
     <Compile Include="DataTypes\ShaderProgram.cs" />
     <Compile Include="DataTypes\VertexArray.cs" />
-    <Compile Include="FrameTracker.cs" />
+    <Compile Include="Support\FrameTracker.cs" />
+    <Compile Include="Support\GlErrorLogger.cs" />
     <Compile Include="RenderControlConfiguration.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UrielConfiguration.cs" />
+    <Compile Include="Support\StaticLogger.cs" />
+    <Compile Include="Support\UrielConfiguration.cs" />
     <Compile Include="UrielForm.cs">
       <SubType>Form</SubType>
     </Compile>
