@@ -1,6 +1,6 @@
 # Road to v1.0
 
-## Uriel v0.5: Draw a Square
+## Uriel v0.5: Draw a Square - DONE
 * Draw a square
 * Size as per configuration
 * Debug Logging as per configuration
