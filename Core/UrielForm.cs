@@ -12,10 +12,13 @@ namespace Uriel
     public class UrielForm : Form
     {
         private GlControl RenderControl;
+        private StatusStrip StatusStrip;
         private readonly UrielConfiguration configuration;
         ShaderProgram _Program;
         IndexedVertexArray _VertexArray;
         private FrameTracker FrameTracker;
+        private ToolStripStatusLabel FpsLabel;
+        private ToolStripStatusLabel U_timeLabel;
 
         public UrielForm(UrielConfiguration configuration)
         {
@@ -24,9 +27,20 @@ namespace Uriel
             InitializeComponent();
         }
 
+        private void SetFPS(float f)
+        {
+            FpsLabel.Text = "FPS: " + f.ToString("0.00");
+        }
+
+        private void SetUTime(float f)
+        {
+            FpsLabel.Text = "Time: " + f.ToString("0.0000");
+        }
+
         private void InitializeComponent()
         {
             this.RenderControl = new OpenGL.GlControl();
+            this.StatusStrip = new StatusStrip();
             this.SuspendLayout();
             // 
             // RenderControl
@@ -34,10 +48,34 @@ namespace Uriel
 
             RenderControlConfiguration.Configure(RenderControl, configuration);
 
+            StatusStrip.BackColor = System.Drawing.Color.DimGray;
+            StatusStrip.Dock = System.Windows.Forms.DockStyle.Bottom;
+            StatusStrip.Name = "StatusStrip";
+
+            FpsLabel = new System.Windows.Forms.ToolStripStatusLabel();
+            U_timeLabel = new System.Windows.Forms.ToolStripStatusLabel();
+
+            StatusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+                FpsLabel,
+                new ToolStripSeparator(),
+                U_timeLabel
+            });
+
+            FpsLabel.Name = "fpsLabel";
+            FpsLabel.Size = new System.Drawing.Size(109, 17);
+            FpsLabel.Text = "---";
+
+            U_timeLabel.Name = "u_timeLabel";
+            U_timeLabel.Size = new System.Drawing.Size(109, 17);
+            U_timeLabel.Text = "---";
+
             this.RenderControl.ContextCreated += new EventHandler<GlControlEventArgs>(this.RenderControl_ContextCreated);
             this.RenderControl.ContextDestroying += new EventHandler<GlControlEventArgs>(this.RenderControl_ContextDestroying);
             this.RenderControl.Render += new EventHandler<GlControlEventArgs>(this.RenderControl_Render);
             this.RenderControl.ContextUpdate += new EventHandler<GlControlEventArgs>(this.RenderControl_ContextUpdate);
+
+            this.StatusStrip.Paint += new PaintEventHandler(this.StatusStrip_Update);
+
             // 
             // SampleForm
             // 
@@ -45,9 +83,15 @@ namespace Uriel
             this.AutoScaleMode = AutoScaleMode.None;
             this.ClientSize = new System.Drawing.Size(this.configuration.Length, this.configuration.Height);
             this.Controls.Add(this.RenderControl);
+            this.Controls.Add(this.StatusStrip);
             this.Name = "Uriel SampleForm";
             this.Text = "Uriel";
             this.ResumeLayout(false);
+        }
+
+        private void StatusStrip_Update(object sender, PaintEventArgs e)
+        {
+            SetFPS(this.FrameTracker.averageFramePerSecond);
         }
 
         #region winforms stuff

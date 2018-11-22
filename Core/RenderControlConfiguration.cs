@@ -1,4 +1,5 @@
 ﻿using OpenGL;
+using System.Windows.Forms;
 
 namespace Uriel
 {
@@ -19,6 +20,5 @@ namespace Uriel
             renderControl.StencilBits = ((uint)(0u));
             renderControl.TabIndex = 0;
         }
-
     }
 }

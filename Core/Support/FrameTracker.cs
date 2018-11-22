@@ -8,7 +8,7 @@ namespace Uriel
 
         DateTime start;
 
-        public double averageFramePerSecond;
+        public float averageFramePerSecond;
 
         public void StartFrame()
         {
@@ -24,7 +24,7 @@ namespace Uriel
         {
             if (frameCount % 100 == 0)
             {
-                averageFramePerSecond = 100 / (DateTime.Now - start).TotalSeconds;
+                averageFramePerSecond = 100 / (float) (DateTime.Now - start).TotalSeconds;
             }
         } 
     }
