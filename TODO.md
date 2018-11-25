@@ -10,7 +10,7 @@
 * Measure FPS
 * Display FPS + Time on status bar
 
-## Uriel v0.74: Shader Loading from Watcher
+## Uriel v0.74: Shader Loading from Watcher - DONE
 * Decide on Vertex/Fragment treatment/architecture
 * Moving between Shaders resets smoothly
 * Load Shader by watching directory
