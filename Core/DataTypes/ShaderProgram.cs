@@ -19,6 +19,7 @@ namespace Uriel.DataTypes
         public int LocationMVP;
         public int LocationPosition;
         public int LocationU_Time;
+        public int LocationResolution;
 
         public ShaderProgram(List<string> vertexSource, List<string> fragmentSource)
         {
@@ -48,6 +49,7 @@ namespace Uriel.DataTypes
 
                 LocationPosition = Gl.GetAttribLocation(ProgramName, "aPosition");
                 LocationU_Time = Gl.GetUniformLocation(ProgramName, "u_time");
+                LocationResolution = Gl.GetUniformLocation(ProgramName, "resolution");
             }
 
             Validate();
@@ -77,6 +79,12 @@ namespace Uriel.DataTypes
             if (LocationU_Time < 0)
             {
                 throw new InvalidOperationException("no attribute u_time");
+            }
+
+            // Get attributes locations
+            if (LocationResolution < 0)
+            {
+                throw new InvalidOperationException("no attribute resolution");
             }
         }
 

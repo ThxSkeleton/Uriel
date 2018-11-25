@@ -5,8 +5,6 @@ using System.Collections.Generic;
 using System.Text;
 using System.Windows.Forms;
 using Uriel.DataTypes;
-using log4net;
-using System.Timers;
 
 namespace Uriel
 {
@@ -191,6 +189,11 @@ namespace Uriel
 
             Gl.Uniform1f<float>(_Program.LocationU_Time, 1, (float) time);
 
+
+            Vertex2f resolution = new Vertex2f(configuration.Length, configuration.Height);
+
+            Gl.Uniform2f(_Program.LocationResolution, 1, resolution);
+
             // Use the vertex array
             Gl.BindVertexArray(_VertexArray.ArrayName);
             GlErrorLogger.Check();
@@ -263,14 +266,17 @@ namespace Uriel
             "}\n"
         };
 
-        private readonly string[] _FragmentSourceGL = {
+        private string[] _FragmentSourceGL = {
             "#version 150 compatibility\n",
             "uniform float u_time;\n",
+            "uniform vec2 resolution;\n",
             "void main() {\n",
-            "   vec3 green = vec3(sin(u_time)*4.0f, 1.0f, 0.0f);\n",
-            "	gl_FragColor = vec4(green, 1.0);\n",
+            "   vec2 normalized = gl_FragCoord.xy/resolution;\n",
+            "   vec3 col = 0.5 + 0.5*cos(u_time+normalized.xyx+vec3(0,2,4));\n",
+            "	gl_FragColor = vec4(col, 1.0);\n",
             "}\n"
         };
+
 
         #endregion
 
