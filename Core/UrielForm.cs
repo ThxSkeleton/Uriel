@@ -23,7 +23,6 @@ namespace Uriel
 
         public UrielForm(UrielConfiguration configuration)
         {
-
             this.configuration = configuration;
             InitializeComponent();
         }
@@ -153,15 +152,27 @@ namespace Uriel
                 Gl.Enable(EnableCap.Multisample);
             }
 
+            BuildProgram(_FragmentSourceGL);
+          
+            GlErrorLogger.Check();
+
+            StartTime = DateTime.UtcNow;
+        }
+
+        private void BuildProgram(string[] fragmentSource)
+        {
             _Program = new StandardFragmentShaderProgram(new List<string>(_FragmentSourceGL));
+            GlErrorLogger.Check();
+
             _VertexArray = new IndexedVertexArray(_Program, _ArrayPosition, _ArrayIndex);
+
+            GlErrorLogger.Check();
 
             _Program.Link();
 
-            StartTime = DateTime.UtcNow;
-
             GlErrorLogger.Check();
-        }
+        } 
+
 
         private void Destroy()
         {
@@ -170,18 +181,26 @@ namespace Uriel
 
         private void Render(int width, int height)
         {
+            if (!ShaderStore.Shaders.IsEmpty)
+            {
+                StaticLogger.Logger.Info("New Shader Detected.");
+
+                string newShader;
+                // don't bother checking success.
+                ShaderStore.Shaders.TryPop(out newShader);
+
+                StaticLogger.Logger.Info(newShader);
+
+                BuildProgram(newShader.Trim().Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None));
+            }
+
             this.FrameTracker.StartFrame();
 
             Gl.Viewport(0, 0, width, height);
             Gl.Clear(ClearBufferMask.ColorBufferBit);
 
-            //Matrix4x4f projection = Matrix4x4f.Ortho2D(-1.0f, +1.0f, -1.0f, +1.0f);
-            //Matrix4x4f modelview = Matrix4x4f.Translated(-0.5f, -0.5f, 0.0f);
-
             // Select the program for drawing
             Gl.UseProgram(_Program.ProgramName);
-            //// Set uniform state
-            //Gl.UniformMatrix4f(_Program.LocationMVP, 1, false, projection * modelview);
 
             double time = (DateTime.UtcNow - StartTime).TotalSeconds;
 
@@ -234,15 +253,6 @@ namespace Uriel
         #endregion
 
         #region Shader Source
-
-        private readonly string[] _VertexSourceGL = {
-            "#version 150 compatibility\n",
-            "uniform mat4 uMVP;\n",
-            "in vec2 aPosition;\n",
-            "void main() {\n",
-            "	gl_Position = uMVP * vec4(aPosition, 0.0, 1.0);\n",
-            "}\n"
-        };
 
         private readonly string[] _FragmentSourceGL_OG = {
             "#version 150 compatibility\n",

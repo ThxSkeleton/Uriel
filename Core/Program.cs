@@ -52,7 +52,10 @@ namespace Uriel
 			};
 			KhronosApi.LogEnabled = false;
 
-			Application.EnableVisualStyles();
+            ShaderFileWatcher watcher = new ShaderFileWatcher(@"Z:\ShaderStore\");
+            watcher.Run();
+
+            Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new UrielForm(config));
 		}
