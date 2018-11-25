@@ -1,36 +1,62 @@
 ﻿using OpenGL;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
+using Uriel.DataTypes;
 
-namespace Uriel.DataTypes
+namespace Uriel
 {
-
-    /// <summary>
-    /// Program abstraction.
-    /// </summary>
-    public class ShaderProgram : IDisposable
+    public class StandardFragmentShaderProgram
     {
-        private readonly List<string> VertexSource;
+        public uint ProgramName;
+
+        // What does the "position" attribute really mean?
+        public int LocationPosition;
+
+
+        public StandardUniforms StandardUniforms { get; private set; }
+
+        /// <summary>
+        /// These are used for validation only.
+        /// </summary>
+        private bool LinkedStatus;
+
+        //
+        // The original source, with a Model View Matrix
+        //
+        //private readonly string[] _VertexSourceGL_OG = {
+        //    "#version 150 compatibility\n",
+        //    "uniform mat4 uMVP;\n",
+        //    "in vec2 aPosition;\n",
+        //    "in vec3 aColor;\n",
+        //    "void main() {\n",
+        //    "	gl_Position = uMVP * vec4(aPosition, 0.0, 1.0);\n",
+        //    "	vColor = aColor;\n",
+        //    "}\n"
+        //};
+
+        private readonly string[] _VertexSourceGL_Simplest = {
+            "#version 150 compatibility\n",
+            "in vec2 aPosition;\n",
+            "void main() {\n",
+            "	gl_Position = vec4(aPosition, 0.0, 1.0);\n",
+            "}\n"
+        };
+
         private readonly List<string> FragmentSource;
 
-        public bool LinkedStatus;
-        public uint ProgramName;
-        public int LocationMVP;
-        public int LocationPosition;
-        public int LocationU_Time;
-        public int LocationResolution;
-
-        public ShaderProgram(List<string> vertexSource, List<string> fragmentSource)
+        public StandardFragmentShaderProgram(List<string> fragmentSource)
         {
-            this.VertexSource = vertexSource;
             this.FragmentSource = fragmentSource;
         }
 
-        public void Link() { 
+        public void Link()
+        {
             // Create vertex and frament shaders
             // Note: they can be disposed after linking to program; resources are freed when deleting the program
-            using (ShaderObject vObject = new ShaderObject(ShaderType.VertexShader, VertexSource.ToArray()))
+            using (ShaderObject vObject = new ShaderObject(ShaderType.VertexShader, _VertexSourceGL_Simplest))
             using (ShaderObject fObject = new ShaderObject(ShaderType.FragmentShader, FragmentSource.ToArray()))
             {
                 // Create program
@@ -48,8 +74,12 @@ namespace Uriel.DataTypes
                 this.LinkedStatus = linked != 0;
 
                 LocationPosition = Gl.GetAttribLocation(ProgramName, "aPosition");
-                LocationU_Time = Gl.GetUniformLocation(ProgramName, "u_time");
-                LocationResolution = Gl.GetUniformLocation(ProgramName, "resolution");
+
+                this.StandardUniforms = new StandardUniforms()
+                {
+                    Location_u_time = Gl.GetUniformLocation(ProgramName, "u_time"),
+                    Location_resolution = Gl.GetUniformLocation(ProgramName, "resolution")
+                };
             }
 
             Validate();
@@ -76,22 +106,16 @@ namespace Uriel.DataTypes
             }
 
             // Get attributes locations
-            if (LocationU_Time < 0)
+            if (this.StandardUniforms.Location_u_time < 0)
             {
                 throw new InvalidOperationException("no attribute u_time");
             }
 
             // Get attributes locations
-            if (LocationResolution < 0)
+            if (this.StandardUniforms.Location_u_time < 0)
             {
                 throw new InvalidOperationException("no attribute resolution");
             }
         }
-
-        public void Dispose()
-        {
-            Gl.DeleteProgram(ProgramName);
-        }
     }
 }
-

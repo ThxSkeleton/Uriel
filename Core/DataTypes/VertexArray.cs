@@ -8,7 +8,7 @@ namespace Uriel.DataTypes
     /// </summary>
     public class VertexArray : IDisposable
     {
-        public VertexArray(ShaderProgram program, float[] positions)
+        public VertexArray(StandardFragmentShaderProgram program, float[] positions)
         {
             if (program == null)
             {

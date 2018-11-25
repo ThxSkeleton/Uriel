@@ -93,8 +93,9 @@
     <Compile Include="DataTypes\GlBuffer.cs" />
     <Compile Include="DataTypes\IndexedVertexArray.cs" />
     <Compile Include="DataTypes\ShaderObject.cs" />
-    <Compile Include="DataTypes\ShaderProgram.cs" />
+    <Compile Include="DataTypes\StandardUniforms.cs" />
     <Compile Include="DataTypes\VertexArray.cs" />
+    <Compile Include="DataTypes\StandardFragmentShader.cs" />
     <Compile Include="Support\FrameTracker.cs" />
     <Compile Include="Support\GlErrorLogger.cs" />
     <Compile Include="RenderControlConfiguration.cs" />

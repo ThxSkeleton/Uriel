@@ -13,7 +13,7 @@ namespace Uriel
         private GlControl RenderControl;
         private StatusStrip StatusStrip;
         private readonly UrielConfiguration configuration;
-        ShaderProgram _Program;
+        StandardFragmentShaderProgram _Program;
         IndexedVertexArray _VertexArray;
         private FrameTracker FrameTracker;
         private ToolStripStatusLabel FpsLabel;
@@ -153,7 +153,7 @@ namespace Uriel
                 Gl.Enable(EnableCap.Multisample);
             }
 
-            _Program = new ShaderProgram(new List<string>(_VertexSourceGL_Simplest), new List<string>(_FragmentSourceGL));
+            _Program = new StandardFragmentShaderProgram(new List<string>(_FragmentSourceGL));
             _VertexArray = new IndexedVertexArray(_Program, _ArrayPosition, _ArrayIndex);
 
             _Program.Link();
@@ -187,12 +187,9 @@ namespace Uriel
 
             SetUTime(time);
 
-            Gl.Uniform1f<float>(_Program.LocationU_Time, 1, (float) time);
-
-
             Vertex2f resolution = new Vertex2f(configuration.Length, configuration.Height);
 
-            Gl.Uniform2f(_Program.LocationResolution, 1, resolution);
+            SetUniforms(_Program.StandardUniforms, time, resolution);
 
             // Use the vertex array
             Gl.BindVertexArray(_VertexArray.ArrayName);
@@ -205,6 +202,14 @@ namespace Uriel
             this.FrameTracker.EndFrame();
             StatusStrip_Update();
         }
+
+        private void SetUniforms(StandardUniforms uniforms, double time, Vertex2f resolution)
+        {
+            Gl.Uniform1f<float>(uniforms.Location_u_time, 1, (float)time);
+
+            Gl.Uniform2f(uniforms.Location_resolution, 1, resolution);
+        }
+
 
         #region Common Data
 
@@ -230,31 +235,12 @@ namespace Uriel
 
         #region Shader Source
 
-        private readonly string[] _VertexSourceGL_OG = {
-            "#version 150 compatibility\n",
-            "uniform mat4 uMVP;\n",
-            "in vec2 aPosition;\n",
-            "in vec3 aColor;\n",
-            "void main() {\n",
-            "	gl_Position = uMVP * vec4(aPosition, 0.0, 1.0);\n",
-            "	vColor = aColor;\n",
-            "}\n"
-        };
-
         private readonly string[] _VertexSourceGL = {
             "#version 150 compatibility\n",
             "uniform mat4 uMVP;\n",
             "in vec2 aPosition;\n",
             "void main() {\n",
             "	gl_Position = uMVP * vec4(aPosition, 0.0, 1.0);\n",
-            "}\n"
-        };
-
-        private readonly string[] _VertexSourceGL_Simplest = {
-            "#version 150 compatibility\n",
-            "in vec2 aPosition;\n",
-            "void main() {\n",
-            "	gl_Position = vec4(aPosition, 0.0, 1.0);\n",
             "}\n"
         };
 

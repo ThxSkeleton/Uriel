@@ -8,7 +8,7 @@ namespace Uriel.DataTypes
     /// </summary>
     public class IndexedVertexArray : IDisposable
     {
-        public IndexedVertexArray(ShaderProgram program, float[] positions, uint[] indexes)
+        public IndexedVertexArray(StandardFragmentShaderProgram program, float[] positions, uint[] indexes)
         {
             this.Count = indexes.Length;
 
