@@ -4,22 +4,13 @@
 * Draw a square
 * Size as per configuration
 * Debug Logging as per configuration
-* Configuration File - xml
 
-## Uriel v0.6: Time Uniform + FPS
+## Uriel v0.6: Time Uniform + FPS - DONE
 * Implement Time Uniform 
 * Measure FPS
-* Attempt FPS limiter
 * Display FPS + Time on status bar
 
-## Uriel v0.7: Optimization release
-* Learn how milisecond level timing is handled 
-* Log4Net, with appropriate settings to be able to handle per-frame log statements
-* Expectation: 90 FPS for Small Window
-* Expectation: 60 FPS for Giant Window
-* Profile GC - is it even an issue?
-
-## Uriel v0.8: Shader Loading
+## Uriel v0.7: Shader Loading
 * Visual Studio Workflow / "Plugin"
 * Decide on Vertex/Fragment treatment/architecture
 * Shader Stack with buttons
@@ -27,10 +18,19 @@
 * Load Shader from file via dialog
 * Load Shader by watching directory
 
-## Uriel v0.9: Texture Support
+## Uriel v0.8: Texture Support
 * Need more research to even decide on steps for this
 
+## Uriel v0.9: Optimization release
+* Learn how milisecond level timing is handled 
+* Log4Net, with appropriate settings to be able to handle per-frame log statements
+* Attempt FPS limiter
+* Expectation: 90 FPS for Small Window
+* Expectation: 60 FPS for Giant Window
+* Profile GC - is it even an issue?
+
 ## Uriel v1.0 Minimum Viable Product Fit + Finish
+* Configuration File - xml
 * Splash screen with Uriel Art
 * Uriel Icon
 * Bugfixes 
