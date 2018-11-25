@@ -6,6 +6,8 @@
 
         public int Height { get; set; }
 
+        public bool LockSize { get; set; }
+
         public bool LoggingEnabled { get; set; }
     }
 }

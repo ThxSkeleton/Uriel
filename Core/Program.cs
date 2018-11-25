@@ -37,8 +37,9 @@ namespace Uriel
         {
             UrielConfiguration config = new UrielConfiguration()
             {
-                Length = 1200,
-                Height = 800,
+                Length = 900,
+                Height = 900,
+                LockSize = true,
                 LoggingEnabled = true
             };
 

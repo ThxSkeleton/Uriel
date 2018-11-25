@@ -18,6 +18,7 @@ namespace Uriel.DataTypes
         public uint ProgramName;
         public int LocationMVP;
         public int LocationPosition;
+        public int LocationU_Time;
 
         public ShaderProgram(List<string> vertexSource, List<string> fragmentSource)
         {
@@ -45,8 +46,8 @@ namespace Uriel.DataTypes
 
                 this.LinkedStatus = linked != 0;
 
-                LocationMVP = Gl.GetUniformLocation(ProgramName, "uMVP");
                 LocationPosition = Gl.GetAttribLocation(ProgramName, "aPosition");
+                LocationU_Time = Gl.GetUniformLocation(ProgramName, "u_time");
             }
 
             Validate();
@@ -66,16 +67,16 @@ namespace Uriel.DataTypes
                 throw new InvalidOperationException($"unable to link program: {infolog}");
             }
 
-            // Get uniform locations
-            if (LocationMVP < 0)
-            {
-                throw new InvalidOperationException("no uniform uMVP");
-            }
-
             // Get attributes locations
             if (LocationPosition < 0)
             {
                 throw new InvalidOperationException("no attribute aPosition");
+            }
+
+            // Get attributes locations
+            if (LocationU_Time < 0)
+            {
+                throw new InvalidOperationException("no attribute u_time");
             }
         }
 

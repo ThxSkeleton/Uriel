@@ -17,6 +17,7 @@ namespace Uriel
             renderControl.MultisampleBits = ((uint)(0u));
             renderControl.Name = "RenderControl";
             renderControl.Size = new System.Drawing.Size(configuration.Length, configuration.Height);
+
             renderControl.StencilBits = ((uint)(0u));
             renderControl.TabIndex = 0;
         }

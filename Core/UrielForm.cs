@@ -6,6 +6,7 @@ using System.Text;
 using System.Windows.Forms;
 using Uriel.DataTypes;
 using log4net;
+using System.Timers;
 
 namespace Uriel
 {
@@ -20,6 +21,8 @@ namespace Uriel
         private ToolStripStatusLabel FpsLabel;
         private ToolStripStatusLabel U_timeLabel;
 
+        public DateTime StartTime { get; private set; }
+
         public UrielForm(UrielConfiguration configuration)
         {
 
@@ -32,13 +35,15 @@ namespace Uriel
             FpsLabel.Text = "FPS: " + f.ToString("0.00");
         }
 
-        private void SetUTime(float f)
+        private void SetUTime(double f)
         {
-            FpsLabel.Text = "Time: " + f.ToString("0.0000");
+            U_timeLabel.Text = "Time: " + f.ToString("0.0000");
         }
 
         private void InitializeComponent()
         {
+            FrameTracker = new FrameTracker();
+
             this.RenderControl = new OpenGL.GlControl();
             this.StatusStrip = new StatusStrip();
             this.SuspendLayout();
@@ -48,9 +53,10 @@ namespace Uriel
 
             RenderControlConfiguration.Configure(RenderControl, configuration);
 
-            StatusStrip.BackColor = System.Drawing.Color.DimGray;
+            StatusStrip.BackColor = System.Drawing.Color.LightGray;
             StatusStrip.Dock = System.Windows.Forms.DockStyle.Bottom;
             StatusStrip.Name = "StatusStrip";
+            StatusStrip.SizingGrip = false;
 
             FpsLabel = new System.Windows.Forms.ToolStripStatusLabel();
             U_timeLabel = new System.Windows.Forms.ToolStripStatusLabel();
@@ -74,7 +80,16 @@ namespace Uriel
             this.RenderControl.Render += new EventHandler<GlControlEventArgs>(this.RenderControl_Render);
             this.RenderControl.ContextUpdate += new EventHandler<GlControlEventArgs>(this.RenderControl_ContextUpdate);
 
-            this.StatusStrip.Paint += new PaintEventHandler(this.StatusStrip_Update);
+            this.FormBorderStyle = FormBorderStyle.FixedDialog;
+
+            // Set the MaximizeBox to false to remove the maximize box.
+            this.MaximizeBox = false;
+
+            // Set the MinimizeBox to false to remove the minimize box.
+            this.MinimizeBox = false;
+
+            // Set the start position of the form to the center of the screen.
+            this.StartPosition = FormStartPosition.CenterScreen;
 
             // 
             // SampleForm
@@ -89,9 +104,11 @@ namespace Uriel
             this.ResumeLayout(false);
         }
 
-        private void StatusStrip_Update(object sender, PaintEventArgs e)
+        private void StatusStrip_Update()
         {
+            StatusStrip.Invalidate();
             SetFPS(this.FrameTracker.averageFramePerSecond);
+            StatusStrip.Refresh();
         }
 
         #region winforms stuff
@@ -138,14 +155,14 @@ namespace Uriel
                 Gl.Enable(EnableCap.Multisample);
             }
 
-            _Program = new ShaderProgram(new List<string>(_VertexSourceGL), new List<string>(_FragmentSourceGL));
+            _Program = new ShaderProgram(new List<string>(_VertexSourceGL_Simplest), new List<string>(_FragmentSourceGL));
             _VertexArray = new IndexedVertexArray(_Program, _ArrayPosition, _ArrayIndex);
 
             _Program.Link();
 
-            GlErrorLogger.Check();
+            StartTime = DateTime.UtcNow;
 
-            FrameTracker = new FrameTracker();
+            GlErrorLogger.Check();
         }
 
         private void Destroy()
@@ -160,13 +177,20 @@ namespace Uriel
             Gl.Viewport(0, 0, width, height);
             Gl.Clear(ClearBufferMask.ColorBufferBit);
 
-            Matrix4x4f projection = Matrix4x4f.Ortho2D(-1.0f, +1.0f, -1.0f, +1.0f);
-            Matrix4x4f modelview = Matrix4x4f.Translated(-0.5f, -0.5f, 0.0f);
+            //Matrix4x4f projection = Matrix4x4f.Ortho2D(-1.0f, +1.0f, -1.0f, +1.0f);
+            //Matrix4x4f modelview = Matrix4x4f.Translated(-0.5f, -0.5f, 0.0f);
 
             // Select the program for drawing
             Gl.UseProgram(_Program.ProgramName);
-            // Set uniform state
-            Gl.UniformMatrix4f(_Program.LocationMVP, 1, false, projection * modelview);
+            //// Set uniform state
+            //Gl.UniformMatrix4f(_Program.LocationMVP, 1, false, projection * modelview);
+
+            double time = (DateTime.UtcNow - StartTime).TotalSeconds;
+
+            SetUTime(time);
+
+            Gl.Uniform1f<float>(_Program.LocationU_Time, 1, (float) time);
+
             // Use the vertex array
             Gl.BindVertexArray(_VertexArray.ArrayName);
             GlErrorLogger.Check();
@@ -176,6 +200,7 @@ namespace Uriel
             GlErrorLogger.Check();
 
             this.FrameTracker.EndFrame();
+            StatusStrip_Update();
         }
 
         #region Common Data
@@ -184,9 +209,9 @@ namespace Uriel
         /// Vertex position array.
         /// </summary>
         private static readonly float[] _ArrayPosition = new float[] {
-            0.0f, 0.0f,
-            1.0f, 0.0f,
-            0.0f, 1.0f,
+            -1.0f, -1.0f,
+            1.0f, -1.0f,
+            -1.0f, 1.0f,
             1.0f, 1.0f
         };
 
@@ -222,6 +247,14 @@ namespace Uriel
             "}\n"
         };
 
+        private readonly string[] _VertexSourceGL_Simplest = {
+            "#version 150 compatibility\n",
+            "in vec2 aPosition;\n",
+            "void main() {\n",
+            "	gl_Position = vec4(aPosition, 0.0, 1.0);\n",
+            "}\n"
+        };
+
         private readonly string[] _FragmentSourceGL_OG = {
             "#version 150 compatibility\n",
             "in vec3 vColor;\n",
@@ -232,8 +265,9 @@ namespace Uriel
 
         private readonly string[] _FragmentSourceGL = {
             "#version 150 compatibility\n",
+            "uniform float u_time;\n",
             "void main() {\n",
-            "   vec3 green = vec3(0.0f, 1.0f, 0.0f);\n",
+            "   vec3 green = vec3(sin(u_time)*4.0f, 1.0f, 0.0f);\n",
             "	gl_FragColor = vec4(green, 1.0);\n",
             "}\n"
         };
