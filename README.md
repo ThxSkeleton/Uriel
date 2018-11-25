@@ -5,8 +5,6 @@ Utilizes the OpenGL.Net library
 
 # Version
 
-Uriel is currently version 0.5 - it doesn't do anything yet, except draw a triangle. 
-
-Check out TODO.md for my development plan.
+Check out TODO.md for my development plan. Check out Version.txt for the current version.
 
 I stream development (at least interesting parts of development) on https://www.twitch.tv/thanksskeleton
