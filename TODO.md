@@ -10,13 +10,19 @@
 * Measure FPS
 * Display FPS + Time on status bar
 
-## Uriel v0.7: Shader Loading
-* Visual Studio Workflow / "Plugin"
+## Uriel v0.74: Shader Loading from Watcher
 * Decide on Vertex/Fragment treatment/architecture
-* Shader Stack with buttons
 * Moving between Shaders resets smoothly
-* Load Shader from file via dialog
 * Load Shader by watching directory
+
+## Uriel v0.77: Shader Loading from File Dialog
+* Load Shader from file via dialog
+* Shader Stack with buttons
+* Shader Compilation Error Message Popup
+
+## Uriel 7.9: Visual Studio "Plugin" Mode
+* Not actually a Plugin
+* Test out workflow and tweak.
 
 ## Uriel v0.8: Texture Support
 * Need more research to even decide on steps for this
