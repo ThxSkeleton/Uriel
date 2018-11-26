@@ -1,12 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Security.Permissions;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Uriel
 {
@@ -52,7 +47,12 @@ namespace Uriel
                 {
                     // Read the stream to a string, and write the string to the console.
                     string glsl = sr.ReadToEnd();
-                    ShaderStore.Shaders.Push(glsl);
+                    ShaderStore.Shaders.Push(new ShaderInfo()
+                    {
+                        Source = glsl,
+                        SourceFileName = eventArgs.Name,
+                        Changed = DateTime.UtcNow
+                    });
                 }
             } 
             catch (Exception ex)
@@ -64,6 +64,22 @@ namespace Uriel
 
     public static class ShaderStore
     {
-        public static ConcurrentStack<string> Shaders = new ConcurrentStack<string>();
+        public static ConcurrentStack<ShaderInfo> Shaders = new ConcurrentStack<ShaderInfo>();
     }
+
+    public class ShaderInfo
+    {
+        public string Source { get; set; }
+
+        public string SourceFileName { get; set; }
+
+        public DateTime Changed { get; set; }
+
+        public string ConvenientName()
+        {
+            return String.Format("{0}-{1}", SourceFileName, Changed.ToString());
+        }
+
+    }
+
 }

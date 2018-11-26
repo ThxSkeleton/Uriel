@@ -9,5 +9,7 @@
         public bool LockSize { get; set; }
 
         public bool LoggingEnabled { get; set; }
+
+        public string WatchDirectory { get; set; }
     }
 }

@@ -2,9 +2,12 @@
 using OpenGL;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using Uriel.DataTypes;
+using Uriel.Support;
 
 namespace Uriel
 {
@@ -13,11 +16,18 @@ namespace Uriel
         private GlControl RenderControl;
         private StatusStrip StatusStrip;
         private readonly UrielConfiguration configuration;
-        StandardFragmentShaderProgram _Program;
-        IndexedVertexArray _VertexArray;
         private FrameTracker FrameTracker;
         private ToolStripStatusLabel FpsLabel;
         private ToolStripStatusLabel U_timeLabel;
+
+        private Panel ShaderList;
+        private ListBox ShaderSelector;
+
+        public ShaderBlob BadShader;
+
+        public BindingList<ShaderBlob> ShaderBlobs = new BindingList<ShaderBlob>();
+
+        public ShaderBlob Previous;
 
         public DateTime StartTime { get; private set; }
 
@@ -39,22 +49,34 @@ namespace Uriel
 
         private void InitializeComponent()
         {
-            FrameTracker = new FrameTracker();
-
-            this.RenderControl = new OpenGL.GlControl();
-            this.StatusStrip = new StatusStrip();
             this.SuspendLayout();
             // 
             // RenderControl
             // 
 
-            RenderControlConfiguration.Configure(RenderControl, configuration);
+            this.RenderControl = new OpenGL.GlControl();
+
+            RenderControl.Animation = true;
+            RenderControl.AnimationTimer = false;
+            RenderControl.BackColor = System.Drawing.Color.DimGray;
+            RenderControl.ColorBits = ((uint)(24u));
+            RenderControl.DepthBits = ((uint)(0u));
+            RenderControl.Dock = System.Windows.Forms.DockStyle.Fill;
+            RenderControl.Location = new System.Drawing.Point(0, 0);
+            RenderControl.MultisampleBits = ((uint)(0u));
+            RenderControl.Name = "RenderControl";
+            RenderControl.Size = new System.Drawing.Size(configuration.Length, configuration.Height);            
+            RenderControl.StencilBits = ((uint)(0u));
+            RenderControl.TabIndex = 0;
+
+            // Label
+
+            this.StatusStrip = new StatusStrip();
 
             StatusStrip.BackColor = System.Drawing.Color.LightGray;
             StatusStrip.Dock = System.Windows.Forms.DockStyle.Bottom;
             StatusStrip.Name = "StatusStrip";
             StatusStrip.SizingGrip = false;
-
             FpsLabel = new System.Windows.Forms.ToolStripStatusLabel();
             U_timeLabel = new System.Windows.Forms.ToolStripStatusLabel();
 
@@ -71,6 +93,21 @@ namespace Uriel
             U_timeLabel.Name = "u_timeLabel";
             U_timeLabel.Size = new System.Drawing.Size(109, 17);
             U_timeLabel.Text = "---";
+
+            // ListBar
+
+            ShaderList = new Panel();
+            ShaderList.Dock = DockStyle.Left;
+            ShaderSelector = new ListBox();
+            ShaderList.Controls.Add(ShaderSelector);
+
+            ShaderSelector.DataSource = this.ShaderBlobs;
+            ShaderSelector.DisplayMember = "Name";
+
+
+
+            FrameTracker = new FrameTracker();
+
 
             this.RenderControl.ContextCreated += new EventHandler<GlControlEventArgs>(this.RenderControl_ContextCreated);
             this.RenderControl.ContextDestroying += new EventHandler<GlControlEventArgs>(this.RenderControl_ContextDestroying);
@@ -93,12 +130,21 @@ namespace Uriel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = AutoScaleMode.None;
-            this.ClientSize = new System.Drawing.Size(this.configuration.Length, this.configuration.Height);
+            this.ClientSize = new System.Drawing.Size(this.configuration.Length+200, this.configuration.Height);
             this.Controls.Add(this.RenderControl);
             this.Controls.Add(this.StatusStrip);
+            this.Controls.Add(this.ShaderList);
             this.Name = "Uriel SampleForm";
             this.Text = "Uriel";
             this.ResumeLayout(false);
+        }
+
+        private void RefreshShaderSelector(object sender, EventArgs e)
+        {
+            ShaderSelector.DataSource = ShaderBlobs;
+            ShaderSelector.Refresh();
+            ShaderSelector.SetSelected(ShaderBlobs.Count() -1, true);
+            ShaderSelector.Refresh();
         }
 
         private void StatusStrip_Update()
@@ -139,12 +185,12 @@ namespace Uriel
 
         private void ContextCreated(uint multisampleBits)
         {
-            // GL Debugging
-            if (Gl.CurrentExtensions != null && Gl.CurrentExtensions.DebugOutput_ARB)
-            {
-                Gl.DebugMessageCallback(GLDebugProc, IntPtr.Zero);
-                Gl.DebugMessageControl(DebugSource.DontCare, DebugType.DontCare, DebugSeverity.DontCare, 0, null, true);
-            }
+            //// GL Debugging
+            //if (Gl.CurrentExtensions != null && Gl.CurrentExtensions.DebugOutput_ARB)
+            //{
+            //    Gl.DebugMessageCallback(GLDebugProc, IntPtr.Zero);
+            //    Gl.DebugMessageControl(DebugSource.DontCare, DebugType.DontCare, DebugSeverity.DontCare, 0, null, true);
+            //}
 
             // Uses multisampling, if available
             if (Gl.CurrentVersion != null && Gl.CurrentVersion.Api == KhronosVersion.ApiGl && multisampleBits > 0)
@@ -152,25 +198,50 @@ namespace Uriel
                 Gl.Enable(EnableCap.Multisample);
             }
 
-            BuildProgram(_FragmentSourceGL);
-          
+            ShaderBlobs.Add(BuildProgram("baseShader", BuiltInFragmentShaderSource.BaseShader));
+            ShaderBlobs.Add(BuildProgram("baseShader2", BuiltInFragmentShaderSource.BaseShaderAlternate));
+
             GlErrorLogger.Check();
+
+            BadShader = BuildProgram("BadShader", BuiltInFragmentShaderSource.BadShader);
 
             StartTime = DateTime.UtcNow;
         }
 
-        private void BuildProgram(string[] fragmentSource)
+        private ShaderBlob BuildProgram(string name, string[] fragmentSource)
         {
-            _Program = new StandardFragmentShaderProgram(new List<string>(_FragmentSourceGL));
-            GlErrorLogger.Check();
+            try
+            {
+                var _Program = new StandardFragmentShaderProgram(new List<string>(fragmentSource));
+                GlErrorLogger.Check();
 
-            _VertexArray = new IndexedVertexArray(_Program, _ArrayPosition, _ArrayIndex);
+                var _VertexArray = new IndexedVertexArray(_Program, _ArrayPosition, _ArrayIndex);
 
-            GlErrorLogger.Check();
+                GlErrorLogger.Check();
 
-            _Program.Link();
+                _Program.Link();
 
-            GlErrorLogger.Check();
+                GlErrorLogger.Check();
+
+                return new ShaderBlob()
+                {
+                    Name = name,
+                    Good = true,
+                    Program = _Program,
+                    VertexArray = _VertexArray
+                };
+            }
+            catch (Exception e)
+            {
+                return new ShaderBlob()
+                {
+                    Name = "X_" + name,
+                    Good = false,
+                    ErrorMessage = e.ToString(),
+                    Program = BadShader.Program,
+                    VertexArray = BadShader.VertexArray
+                };
+            }
         } 
 
 
@@ -185,14 +256,30 @@ namespace Uriel
             {
                 StaticLogger.Logger.Info("New Shader Detected.");
 
-                string newShader;
+                ShaderInfo newShader;
                 // don't bother checking success.
                 ShaderStore.Shaders.TryPop(out newShader);
 
                 StaticLogger.Logger.Info(newShader);
 
-                BuildProgram(newShader.Trim().Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None));
+                IEnumerable<string> shaderStringBase = newShader.Source.Trim().Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+                IEnumerable<string> shaderStringPostPendNewlines = shaderStringBase.Select(x => x + "\n");
+
+                var shaderActual = ShaderToyConverter.TranslateShader(shaderStringPostPendNewlines.ToList());
+
+                ShaderBlobs.Add(BuildProgram(newShader.ConvenientName(), shaderActual.ToArray()));
+
+                RefreshShaderSelector(null, null);
             }
+
+            ShaderBlob currentShader = (ShaderBlob)ShaderSelector.SelectedItem;
+
+            if (currentShader != Previous)
+            {
+                this.StartTime = DateTime.UtcNow;
+            }
+
+            this.Previous = currentShader;
 
             this.FrameTracker.StartFrame();
 
@@ -200,7 +287,7 @@ namespace Uriel
             Gl.Clear(ClearBufferMask.ColorBufferBit);
 
             // Select the program for drawing
-            Gl.UseProgram(_Program.ProgramName);
+            Gl.UseProgram(currentShader.Program.ProgramName);
 
             double time = (DateTime.UtcNow - StartTime).TotalSeconds;
 
@@ -208,14 +295,14 @@ namespace Uriel
 
             Vertex2f resolution = new Vertex2f(configuration.Length, configuration.Height);
 
-            SetUniforms(_Program.StandardUniforms, time, resolution);
+            SetUniforms(currentShader.Program.StandardUniforms, time, resolution);
 
             // Use the vertex array
-            Gl.BindVertexArray(_VertexArray.ArrayName);
+            Gl.BindVertexArray(currentShader.VertexArray.ArrayName);
             GlErrorLogger.Check();
             // Draw triangle
             // Note: vertex attributes are streamed from GPU memory
-            Gl.DrawElements(PrimitiveType.Triangles, _VertexArray.Count, DrawElementsType.UnsignedInt, IntPtr.Zero);
+            Gl.DrawElements(PrimitiveType.Triangles, currentShader.VertexArray.Count, DrawElementsType.UnsignedInt, IntPtr.Zero);
             GlErrorLogger.Check();
 
             this.FrameTracker.EndFrame();
@@ -224,9 +311,15 @@ namespace Uriel
 
         private void SetUniforms(StandardUniforms uniforms, double time, Vertex2f resolution)
         {
-            Gl.Uniform1f<float>(uniforms.Location_u_time, 1, (float)time);
+            if (uniforms.TimeEnabled)
+            {
+                Gl.Uniform1f<float>(uniforms.Location_u_time, 1, (float)time);
+            }
 
-            Gl.Uniform2f(uniforms.Location_resolution, 1, resolution);
+            if (uniforms.ResolutionEnabled)
+            {
+                Gl.Uniform2f(uniforms.Location_resolution, 1, resolution);
+            }
         }
 
 
@@ -252,47 +345,38 @@ namespace Uriel
 
         #endregion
 
-        #region Shader Source
+        //
+        // What is this? Disabled for now.
+        //
+        //private void GLDebugProc(DebugSource source, DebugType type, uint id, DebugSeverity severity, int length, IntPtr message, IntPtr userParam)
+        //{
+        //    string strMessage;
 
-        private readonly string[] _FragmentSourceGL_OG = {
-            "#version 150 compatibility\n",
-            "in vec3 vColor;\n",
-            "void main() {\n",
-            "	gl_FragColor = vec4(vColor, 1.0);\n",
-            "}\n"
-        };
+        //    // Decode message string
+        //    unsafe
+        //    {
+        //        strMessage = Encoding.ASCII.GetString((byte*)message.ToPointer(), length);
+        //    }
 
-        private string[] _FragmentSourceGL = {
-            "#version 150 compatibility\n",
-            "uniform float u_time;\n",
-            "uniform vec2 resolution;\n",
-            "void main() {\n",
-            "   vec2 normalized = gl_FragCoord.xy/resolution;\n",
-            "   vec3 col = 0.5 + 0.5*cos(u_time+normalized.xyx+vec3(0,2,4));\n",
-            "	gl_FragColor = vec4(col, 1.0);\n",
-            "}\n"
-        };
-
-
-        #endregion
-
-
-        private void GLDebugProc(DebugSource source, DebugType type, uint id, DebugSeverity severity, int length, IntPtr message, IntPtr userParam)
-        {
-            string strMessage;
-
-            // Decode message string
-            unsafe
-            {
-                strMessage = Encoding.ASCII.GetString((byte*)message.ToPointer(), length);
-            }
-
-            StaticLogger.Logger.Info($"{source}, {type}, {severity}: {strMessage}");
-        }
+        //    StaticLogger.Logger.Info($"{source}, {type}, {severity}: {strMessage}");
+        //}
 
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
         }
+    }
+
+    public class ShaderBlob
+    {
+        public string Name { get; set; }
+
+        public bool Good { get; set; }
+
+        public string ErrorMessage { get; set; }
+
+        public StandardFragmentShaderProgram Program { get; set; }
+        public IndexedVertexArray VertexArray { get; set; }
+
     }
 }

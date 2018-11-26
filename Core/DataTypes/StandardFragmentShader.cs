@@ -78,7 +78,9 @@ namespace Uriel
                 this.StandardUniforms = new StandardUniforms()
                 {
                     Location_u_time = Gl.GetUniformLocation(ProgramName, "u_time"),
-                    Location_resolution = Gl.GetUniformLocation(ProgramName, "resolution")
+                    TimeEnabled = true,
+                    Location_resolution = Gl.GetUniformLocation(ProgramName, "resolution"),
+                    ResolutionEnabled = true
                 };
             }
 
@@ -108,13 +110,15 @@ namespace Uriel
             // Get attributes locations
             if (this.StandardUniforms.Location_u_time < 0)
             {
-                throw new InvalidOperationException("no attribute u_time");
+                StaticLogger.Logger.Warn("no attribute u_time");
+                this.StandardUniforms.TimeEnabled = false;
             }
 
             // Get attributes locations
-            if (this.StandardUniforms.Location_u_time < 0)
+            if (this.StandardUniforms.Location_resolution < 0)
             {
-                throw new InvalidOperationException("no attribute resolution");
+                StaticLogger.Logger.Warn("no attribute resolution");
+                this.StandardUniforms.ResolutionEnabled = false;
             }
         }
     }
