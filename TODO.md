@@ -20,7 +20,7 @@
 * Shader Stack with buttons
 * Shader Compilation Error Message Popup
 
-## Uriel 7.9: Visual Studio "Plugin" Mode
+## Uriel v0.79: Visual Studio "Plugin" Mode
 * Not actually a Plugin
 * Test out workflow and tweak.
 
