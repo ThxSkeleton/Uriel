@@ -20,7 +20,7 @@ namespace Uriel
         private ToolStripStatusLabel FpsLabel;
         private ToolStripStatusLabel U_timeLabel;
 
-        private Panel ShaderList;
+        private Panel LeftPanel;
         private ListBox ShaderSelector;
 
         public ShaderBlob BadShader;
@@ -28,6 +28,9 @@ namespace Uriel
         public BindingList<ShaderBlob> ShaderBlobs = new BindingList<ShaderBlob>();
 
         public ShaderBlob Previous;
+        private TextBox ErrorBox;
+
+        private const int LEFT_PANEL_WIDTH = 300;
 
         public DateTime StartTime { get; private set; }
 
@@ -96,15 +99,29 @@ namespace Uriel
 
             // ListBar
 
-            ShaderList = new Panel();
-            ShaderList.Dock = DockStyle.Left;
-            ShaderSelector = new ListBox();
-            ShaderList.Controls.Add(ShaderSelector);
+            LeftPanel = new Panel();
+            LeftPanel.Dock = DockStyle.Left;
+            LeftPanel.Width = LEFT_PANEL_WIDTH;
 
+            ShaderSelector = new ListBox();
+
+            LeftPanel.Controls.Add(ShaderSelector);
+
+            ShaderSelector.Width = LEFT_PANEL_WIDTH;
+            ShaderSelector.Height = 400;
             ShaderSelector.DataSource = this.ShaderBlobs;
             ShaderSelector.DisplayMember = "Name";
 
+            ErrorBox = new TextBox();
 
+            LeftPanel.Controls.Add(ErrorBox);
+
+            ErrorBox.Multiline = true;
+            ErrorBox.ReadOnly = true;
+
+            ErrorBox.Dock = DockStyle.Bottom;
+            ErrorBox.Width = LEFT_PANEL_WIDTH;
+            ErrorBox.Height = 400;
 
             FrameTracker = new FrameTracker();
 
@@ -133,7 +150,7 @@ namespace Uriel
             this.ClientSize = new System.Drawing.Size(this.configuration.Length+200, this.configuration.Height);
             this.Controls.Add(this.RenderControl);
             this.Controls.Add(this.StatusStrip);
-            this.Controls.Add(this.ShaderList);
+            this.Controls.Add(this.LeftPanel);
             this.Name = "Uriel SampleForm";
             this.Text = "Uriel";
             this.ResumeLayout(false);
@@ -267,7 +284,12 @@ namespace Uriel
 
                 var shaderActual = ShaderToyConverter.TranslateShader(shaderStringPostPendNewlines.ToList());
 
-                ShaderBlobs.Add(BuildProgram(newShader.ConvenientName(), shaderActual.ToArray()));
+                var newBlob = BuildProgram(newShader.ConvenientName(), shaderActual.ToArray());
+
+                ErrorBox.Text = newBlob.ErrorMessage;
+                ErrorBox.Refresh();
+
+                ShaderBlobs.Add(newBlob);
 
                 RefreshShaderSelector(null, null);
             }
@@ -277,6 +299,8 @@ namespace Uriel
             if (currentShader != Previous)
             {
                 this.StartTime = DateTime.UtcNow;
+                ErrorBox.Text = currentShader.ErrorMessage;
+                ErrorBox.Refresh();
             }
 
             this.Previous = currentShader;

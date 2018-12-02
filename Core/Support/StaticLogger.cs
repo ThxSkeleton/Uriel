@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Uriel
 {
-    class StaticLogger
+    public class StaticLogger
     {
         public static void Create(bool enabled)
         {
