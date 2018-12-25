@@ -8,13 +8,13 @@ using Uriel.DataTypes;
 
 namespace Uriel
 {
-    public class StandardFragmentShaderProgram : IShaderProgram
+    public class StandardFragmentShaderProgramPlusTexture : IShaderProgram
     {
         public uint ProgramName { get; private set; }
 
-        // What does the "position" attribute really mean?
         public int LocationPosition;
 
+        public int LocationTexture;
 
         public StandardUniforms StandardUniforms { get; private set; }
 
@@ -23,31 +23,20 @@ namespace Uriel
         /// </summary>
         private bool LinkedStatus;
 
-        //
-        // The original source, with a Model View Matrix
-        //
-        //private readonly string[] _VertexSourceGL_OG = {
-        //    "#version 150 compatibility\n",
-        //    "uniform mat4 uMVP;\n",
-        //    "in vec2 aPosition;\n",
-        //    "in vec3 aColor;\n",
-        //    "void main() {\n",
-        //    "	gl_Position = uMVP * vec4(aPosition, 0.0, 1.0);\n",
-        //    "	vColor = aColor;\n",
-        //    "}\n"
-        //};
-
-        private readonly string[] _VertexSourceGL_Simplest = {
+        private readonly string[] _VertexSourceGL_Simplest_Tex = {
             "#version 150 compatibility\n",
             "in vec2 aPosition;\n",
+            "in vec2 aTexCoord;\n",
+            "out vec2 fTexCoord;\n",
             "void main() {\n",
             "	gl_Position = vec4(aPosition, 0.0, 1.0);\n",
+            "   fTexCoord = aTexCoord;",
             "}\n"
         };
 
         private readonly List<string> FragmentSource;
 
-        public StandardFragmentShaderProgram(List<string> fragmentSource)
+        public StandardFragmentShaderProgramPlusTexture(List<string> fragmentSource) 
         {
             this.FragmentSource = fragmentSource;
         }
@@ -56,7 +45,7 @@ namespace Uriel
         {
             // Create vertex and frament shaders
             // Note: they can be disposed after linking to program; resources are freed when deleting the program
-            using (ShaderObject vObject = new ShaderObject(ShaderType.VertexShader, _VertexSourceGL_Simplest))
+            using (ShaderObject vObject = new ShaderObject(ShaderType.VertexShader, _VertexSourceGL_Simplest_Tex))
             using (ShaderObject fObject = new ShaderObject(ShaderType.FragmentShader, FragmentSource.ToArray()))
             {
                 // Create program
@@ -74,6 +63,7 @@ namespace Uriel
                 this.LinkedStatus = linked != 0;
 
                 LocationPosition = Gl.GetAttribLocation(ProgramName, "aPosition");
+                LocationTexture = Gl.GetAttribLocation(ProgramName, "aTexCoord");
 
                 this.StandardUniforms = new StandardUniforms()
                 {
@@ -105,6 +95,12 @@ namespace Uriel
             if (LocationPosition < 0)
             {
                 throw new InvalidOperationException("no attribute aPosition");
+            }
+
+            // Get attributes locations
+            if (LocationPosition < 0)
+            {
+                throw new InvalidOperationException("no attribute aTexCoord");
             }
 
             // Get attributes locations

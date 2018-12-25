@@ -68,7 +68,7 @@ namespace Uriel
             RenderControl.Location = new System.Drawing.Point(0, 0);
             RenderControl.MultisampleBits = ((uint)(0u));
             RenderControl.Name = "RenderControl";
-            RenderControl.Size = new System.Drawing.Size(configuration.Length, configuration.Height);            
+            RenderControl.Size = new System.Drawing.Size(configuration.Length, configuration.Height);
             RenderControl.StencilBits = ((uint)(0u));
             RenderControl.TabIndex = 0;
 
@@ -147,7 +147,7 @@ namespace Uriel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = AutoScaleMode.None;
-            this.ClientSize = new System.Drawing.Size(this.configuration.Length+200, this.configuration.Height);
+            this.ClientSize = new System.Drawing.Size(this.configuration.Length + 200, this.configuration.Height);
             this.Controls.Add(this.RenderControl);
             this.Controls.Add(this.StatusStrip);
             this.Controls.Add(this.LeftPanel);
@@ -160,7 +160,7 @@ namespace Uriel
         {
             ShaderSelector.DataSource = ShaderBlobs;
             ShaderSelector.Refresh();
-            ShaderSelector.SetSelected(ShaderBlobs.Count() -1, true);
+            ShaderSelector.SetSelected(ShaderBlobs.Count() - 1, true);
             ShaderSelector.Refresh();
         }
 
@@ -215,15 +215,67 @@ namespace Uriel
                 Gl.Enable(EnableCap.Multisample);
             }
 
-            ShaderBlobs.Add(BuildProgram("baseShader", BuiltInFragmentShaderSource.BaseShader));
-            ShaderBlobs.Add(BuildProgram("baseShader2", BuiltInFragmentShaderSource.BaseShaderAlternate));
-
-            GlErrorLogger.Check();
-
             BadShader = BuildProgram("BadShader", BuiltInFragmentShaderSource.BadShader);
+
+            ShaderBlobs.Add(BuildProgram("baseShader", BuiltInFragmentShaderSource.BaseShader));
+            ShaderBlobs.Add(BuildProgramWithTexture("baseShader2", BuiltInFragmentShaderSource.BaseShaderAlternate, @"Z:\ShaderStore\Mega-Skull.png"));
+            ShaderBlobs.Add(BuildProgramWithTexture("textureShader", BuiltInFragmentShaderSource.TextureTest, @"Z:\ShaderStore\Mega-Skull.png"));
+
+            GlErrorLogger.Check();          
 
             StartTime = DateTime.UtcNow;
         }
+
+        private ShaderBlob BuildProgramWithTexture(string name, string[] fragmentSource, string texturePath)
+        {
+            try
+            {
+                PngTexture texture = new PngTexture(texturePath);
+                texture.Load();
+                texture.Create();
+                GlErrorLogger.Check();
+
+                // Do I even need this?
+                Gl.BindTexture(TextureTarget.Texture2d, texture.TextureName);
+                GlErrorLogger.Check();
+
+                var _Program = new StandardFragmentShaderProgramPlusTexture(new List<string>(fragmentSource));
+                GlErrorLogger.Check();
+
+                var _VertexArray = new IndexedVertexArrayWithTexture(_Program, _ArrayPosition, _ArrayTex, _ArrayIndex);
+
+                GlErrorLogger.Check();
+
+                _Program.Link();
+
+                GlErrorLogger.Check();
+
+                return new ShaderBlob()
+                {
+                    Name = name,
+                    Good = true,
+                    Program = _Program,
+                    VertexArray = _VertexArray,
+                    HasTexture = true,
+                    TextureName = texture.TextureName,
+                    
+                };
+            }
+            catch (Exception e)
+            {
+                return new ShaderBlob()
+                {
+                    Name = "X_" + name,
+                    Good = false,
+                    ErrorMessage = e.ToString(),
+                    Program = BadShader.Program,
+                    VertexArray = BadShader.VertexArray
+                };
+            }
+
+
+        }
+
 
         private ShaderBlob BuildProgram(string name, string[] fragmentSource)
         {
@@ -321,11 +373,15 @@ namespace Uriel
 
             SetUniforms(currentShader.Program.StandardUniforms, time, resolution);
 
+            if (currentShader.HasTexture)
+            {
+                Gl.BindTexture(TextureTarget.Texture2d, currentShader.TextureName);
+            }
+
             // Use the vertex array
             Gl.BindVertexArray(currentShader.VertexArray.ArrayName);
             GlErrorLogger.Check();
             // Draw triangle
-            // Note: vertex attributes are streamed from GPU memory
             Gl.DrawElements(PrimitiveType.Triangles, currentShader.VertexArray.Count, DrawElementsType.UnsignedInt, IntPtr.Zero);
             GlErrorLogger.Check();
 
@@ -357,6 +413,16 @@ namespace Uriel
             1.0f, -1.0f,
             -1.0f, 1.0f,
             1.0f, 1.0f
+        };
+
+        /// <summary>
+        /// texture Coordinates array
+        /// </summary>
+        private static readonly float[] _ArrayTex = new float[] {
+            -1.0f, -1.0f,      
+            1.0f, -1.0f,       
+            -1.0f, 1.0f,       
+            1.0f, 1.0f,        
         };
 
         /// <summary>
@@ -399,8 +465,12 @@ namespace Uriel
 
         public string ErrorMessage { get; set; }
 
-        public StandardFragmentShaderProgram Program { get; set; }
-        public IndexedVertexArray VertexArray { get; set; }
+        public IShaderProgram Program { get; set; }
+        public IIndexedVertexArray VertexArray { get; set; }
+
+        public bool HasTexture { get; set; }
+
+        public uint TextureName { get; set; }
 
     }
 }
