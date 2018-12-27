@@ -218,7 +218,7 @@ namespace Uriel
             BadShader = BuildProgram("BadShader", BuiltInFragmentShaderSource.BadShader);
 
             ShaderBlobs.Add(BuildProgram("baseShader", BuiltInFragmentShaderSource.BaseShader));
-            ShaderBlobs.Add(BuildProgramWithTexture("baseShader2", BuiltInFragmentShaderSource.BaseShaderAlternate, @"Z:\ShaderStore\Mega-Skull.png"));
+            ShaderBlobs.Add(BuildProgramWithTexture("baseShader2", BuiltInFragmentShaderSource.BaseShader2, @"Z:\ShaderStore\Mega-Skull.png"));
             ShaderBlobs.Add(BuildProgramWithTexture("textureShader", BuiltInFragmentShaderSource.TextureTest, @"Z:\ShaderStore\Mega-Skull.png"));
 
             GlErrorLogger.Check();          
@@ -239,7 +239,7 @@ namespace Uriel
                 Gl.BindTexture(TextureTarget.Texture2d, texture.TextureName);
                 GlErrorLogger.Check();
 
-                var _Program = new StandardFragmentShaderProgramPlusTexture(new List<string>(fragmentSource));
+                var _Program = new StandardFragmentShaderProgramPlusTexture(new List<string>(fragmentSource), new List<string>());
                 GlErrorLogger.Check();
 
                 var _VertexArray = new IndexedVertexArrayWithTexture(_Program, _ArrayPosition, _ArrayTex, _ArrayIndex);

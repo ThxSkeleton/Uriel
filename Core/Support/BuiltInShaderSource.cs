@@ -13,6 +13,17 @@
             "}\n"
         };
 
+        public static string[] BaseShader2 = {
+            "#version 150 compatibility\n",
+            "uniform float u_time;\n",
+            "uniform vec2 resolution;\n",
+            "void main() {\n",
+            "   vec2 normalized = gl_FragCoord.xy/resolution;\n",
+            "   vec3 col = 0.5 + 0.5*cos(u_time+normalized.xyx+vec3(0,2,4));\n",
+            "	gl_FragColor = vec4(col, 1.0);\n",
+            "}\n"
+        };
+
         public static string[] BaseShaderAlternate = {
             "#version 330 core\n",
             "layout(location = 0) out vec4 frag_color;\n",

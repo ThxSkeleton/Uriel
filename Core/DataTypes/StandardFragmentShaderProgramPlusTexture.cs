@@ -36,9 +36,10 @@ namespace Uriel
 
         private readonly List<string> FragmentSource;
 
-        public StandardFragmentShaderProgramPlusTexture(List<string> fragmentSource) 
+        public StandardFragmentShaderProgramPlusTexture(List<string> fragmentSource, List<string> vertexSource) 
         {
             this.FragmentSource = fragmentSource;
+            //this.VertexSource = vertexSource;
         }
 
         public void Link()
@@ -97,11 +98,11 @@ namespace Uriel
                 throw new InvalidOperationException("no attribute aPosition");
             }
 
-            // Get attributes locations
-            if (LocationPosition < 0)
-            {
-                throw new InvalidOperationException("no attribute aTexCoord");
-            }
+            //// Get attributes locations
+            //if (LocationTexture < 0)
+            //{
+            //    throw new InvalidOperationException("no attribute aTexCoord");
+            //}
 
             // Get attributes locations
             if (this.StandardUniforms.Location_u_time < 0)
