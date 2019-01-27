@@ -29,12 +29,12 @@
 * 2d vertex with color value and texture coordinate
 ## Fragment Shader Uniform Consumption 
 * Basic Set
-** Resolution
-** Time
+  * Resolution
+  * Time
 * ShaderToy Set
-** Mouse - X Y Mousedown
+  * Mouse - X Y Mousedown
 * Dimension Set 
-** X Y Z
+  * X Y Z
 
 ## Texture
 * No Texture
