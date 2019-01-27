@@ -215,40 +215,46 @@ namespace Uriel
                 Gl.Enable(EnableCap.Multisample);
             }
 
-            BadShader = BuildProgram("BadShader", BuiltInFragmentShaderSource.BadShader);
+            BadShader = BuildProgramWithTexture("BadShader", BuiltInFragmentShaderSource.BadShader, BuiltInFragmentShaderSource._VertexSourceGL_Simplest);
 
-            ShaderBlobs.Add(BuildProgram("baseShader", BuiltInFragmentShaderSource.BaseShader));
-            ShaderBlobs.Add(BuildProgramWithTexture("baseShader2", BuiltInFragmentShaderSource.BaseShader2, @"Z:\ShaderStore\Mega-Skull.png"));
-            ShaderBlobs.Add(BuildProgramWithTexture("textureShader", BuiltInFragmentShaderSource.TextureTest, @"Z:\ShaderStore\Mega-Skull.png"));
+            ShaderBlobs.Add(BuildProgramWithTexture("baseShader", BuiltInFragmentShaderSource.BaseShader, BuiltInFragmentShaderSource._VertexSourceGL_Simplest));
+            ShaderBlobs.Add(BuildProgramWithTexture("baseShader2", BuiltInFragmentShaderSource.BaseShader2, BuiltInFragmentShaderSource._VertexSourceGL_Simplest, @"Z:\ShaderStore\Mega-Skull.png"));
+            ShaderBlobs.Add(BuildProgramWithTexture("textureShader", BuiltInFragmentShaderSource.TextureTest, BuiltInFragmentShaderSource._VertexSourceGL_Simplest_Tex, @"Z:\ShaderStore\Mega-Skull.png"));
 
             GlErrorLogger.Check();          
 
             StartTime = DateTime.UtcNow;
         }
 
-        private ShaderBlob BuildProgramWithTexture(string name, string[] fragmentSource, string texturePath)
+        private ShaderBlob BuildProgramWithTexture(string name, string[] fragmentSource, string[] vertexSource, string texturePath = null)
         {
             try
             {
-                PngTexture texture = new PngTexture(texturePath);
-                texture.Load();
-                texture.Create();
-                GlErrorLogger.Check();
+                PngTexture texture = null;
 
-                // Do I even need this?
-                Gl.BindTexture(TextureTarget.Texture2d, texture.TextureName);
-                GlErrorLogger.Check();
+                if (texturePath != null)
+                {
+                    texture = new PngTexture(texturePath);
+                    texture.Load();
+                    texture.Create();
+                    GlErrorLogger.Check();
 
-                var _Program = new StandardFragmentShaderProgramPlusTexture(new List<string>(fragmentSource), new List<string>());
-                GlErrorLogger.Check();
+                    // Do I even need this?
+                    Gl.BindTexture(TextureTarget.Texture2d, texture.TextureName);
+                    GlErrorLogger.Check();
+                }
 
-                var _VertexArray = new IndexedVertexArrayWithTexture(_Program, _ArrayPosition, _ArrayTex, _ArrayIndex);
-
+                var _Program = new StandardFragmentShaderProgramPlusTexture(new List<string>(fragmentSource), new List<string>(vertexSource));
                 GlErrorLogger.Check();
 
                 _Program.Link();
-
                 GlErrorLogger.Check();
+
+                IIndexedVertexArray _VertexArray = texturePath == null ? 
+                   (IIndexedVertexArray) new IndexedVertexArray(_Program, _ArrayPosition, _ArrayIndex) :
+                   new IndexedVertexArrayWithTexture(_Program, _ArrayPosition, _ArrayTex, _ArrayIndex);
+
+               GlErrorLogger.Check();
 
                 return new ShaderBlob()
                 {
@@ -256,13 +262,14 @@ namespace Uriel
                     Good = true,
                     Program = _Program,
                     VertexArray = _VertexArray,
-                    HasTexture = true,
-                    TextureName = texture.TextureName,
-                    
+                    HasTexture = !(texture == null),
+                    TextureName = (texture==null) ? 0 : texture.TextureName,                  
                 };
             }
             catch (Exception e)
             {
+                StaticLogger.Logger.ErrorFormat("{1} - Shader Error {0}", name, e.ToString());
+
                 return new ShaderBlob()
                 {
                     Name = "X_" + name,
@@ -275,44 +282,6 @@ namespace Uriel
 
 
         }
-
-
-        private ShaderBlob BuildProgram(string name, string[] fragmentSource)
-        {
-            try
-            {
-                var _Program = new StandardFragmentShaderProgram(new List<string>(fragmentSource));
-                GlErrorLogger.Check();
-
-                var _VertexArray = new IndexedVertexArray(_Program, _ArrayPosition, _ArrayIndex);
-
-                GlErrorLogger.Check();
-
-                _Program.Link();
-
-                GlErrorLogger.Check();
-
-                return new ShaderBlob()
-                {
-                    Name = name,
-                    Good = true,
-                    Program = _Program,
-                    VertexArray = _VertexArray
-                };
-            }
-            catch (Exception e)
-            {
-                return new ShaderBlob()
-                {
-                    Name = "X_" + name,
-                    Good = false,
-                    ErrorMessage = e.ToString(),
-                    Program = BadShader.Program,
-                    VertexArray = BadShader.VertexArray
-                };
-            }
-        } 
-
 
         private void Destroy()
         {
@@ -336,7 +305,7 @@ namespace Uriel
 
                 var shaderActual = ShaderToyConverter.TranslateShader(shaderStringPostPendNewlines.ToList());
 
-                var newBlob = BuildProgram(newShader.ConvenientName(), shaderActual.ToArray());
+                var newBlob = BuildProgramWithTexture(newShader.ConvenientName(), shaderActual.ToArray(), BuiltInFragmentShaderSource._VertexSourceGL_Simplest);
 
                 ErrorBox.Text = newBlob.ErrorMessage;
                 ErrorBox.Refresh();
@@ -389,14 +358,14 @@ namespace Uriel
             StatusStrip_Update();
         }
 
-        private void SetUniforms(StandardUniforms uniforms, double time, Vertex2f resolution)
+        private void SetUniforms(ShaderLocations uniforms, double time, Vertex2f resolution)
         {
-            if (uniforms.TimeEnabled)
+            if (ShaderLocations.Enabled(uniforms.Location_u_time))
             {
                 Gl.Uniform1f<float>(uniforms.Location_u_time, 1, (float)time);
             }
 
-            if (uniforms.ResolutionEnabled)
+            if (ShaderLocations.Enabled(uniforms.Location_resolution))
             {
                 Gl.Uniform2f(uniforms.Location_resolution, 1, resolution);
             }

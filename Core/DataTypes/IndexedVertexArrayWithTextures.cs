@@ -8,7 +8,7 @@ namespace Uriel.DataTypes
     /// </summary>
     public class IndexedVertexArrayWithTexture : IIndexedVertexArray
     {
-        public IndexedVertexArrayWithTexture(StandardFragmentShaderProgramPlusTexture program, float[] position, float[] tex, uint[] indexes)
+        public IndexedVertexArrayWithTexture(IShaderProgram program, float[] position, float[] tex, uint[] indexes)
         {
             if (program == null)
             {
@@ -40,21 +40,21 @@ namespace Uriel.DataTypes
             // Fill Position
             Gl.BindBuffer(BufferTarget.ArrayBuffer, _BufferPosition.BufferName);
             GlErrorLogger.Check();
-            Gl.VertexAttribPointer((uint)program.LocationPosition, position_VERTEX_ELEMENTCOUNT, VertexAttribType.Float, false, 0, IntPtr.Zero);
+            Gl.VertexAttribPointer((uint)program.StandardUniforms.LocationPosition, position_VERTEX_ELEMENTCOUNT, VertexAttribType.Float, false, 0, IntPtr.Zero);
             GlErrorLogger.Check();
 
             // Enable attribute
-            Gl.EnableVertexAttribArray((uint)program.LocationPosition);
+            Gl.EnableVertexAttribArray((uint)program.StandardUniforms.LocationPosition);
             GlErrorLogger.Check();
 
-            // Fill Position
+            // Fill texture
             Gl.BindBuffer(BufferTarget.ArrayBuffer, _BufferTex.BufferName);
             GlErrorLogger.Check();
-            Gl.VertexAttribPointer((uint)program.LocationTexture, TextureCoordinate_VERTEX_ELEMENTCOUNT, VertexAttribType.Float, false, 0, IntPtr.Zero);
+            Gl.VertexAttribPointer((uint)program.StandardUniforms.LocationTexture, TextureCoordinate_VERTEX_ELEMENTCOUNT, VertexAttribType.Float, false, 0, IntPtr.Zero);
             GlErrorLogger.Check();
 
             // Enable attribute
-            Gl.EnableVertexAttribArray((uint)program.LocationTexture);
+            Gl.EnableVertexAttribArray((uint)program.StandardUniforms.LocationTexture);
             GlErrorLogger.Check();
 
             Gl.BindBuffer(BufferTarget.ElementArrayBuffer, _BufferIndex.BufferName);

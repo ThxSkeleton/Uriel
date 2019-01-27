@@ -8,7 +8,7 @@ namespace Uriel.DataTypes
     /// </summary>
     public class VertexArray : IDisposable
     {
-        public VertexArray(StandardFragmentShaderProgram program, float[] positions)
+        public VertexArray(StandardFragmentShaderProgramPlusTexture program, float[] positions)
         {
             if (program == null)
             {
@@ -28,9 +28,9 @@ namespace Uriel.DataTypes
             // Select the buffer object
             Gl.BindBuffer(BufferTarget.ArrayBuffer, _BufferPosition.BufferName);
             // Format the vertex information: 2 floats from the current buffer
-            Gl.VertexAttribPointer((uint)program.LocationPosition, 2, VertexAttribType.Float, false, 0, IntPtr.Zero);
+            Gl.VertexAttribPointer((uint)program.StandardUniforms.LocationPosition, 2, VertexAttribType.Float, false, 0, IntPtr.Zero);
             // Enable attribute
-            Gl.EnableVertexAttribArray((uint)program.LocationPosition);
+            Gl.EnableVertexAttribArray((uint)program.StandardUniforms.LocationPosition);
         }
 
         public readonly uint ArrayName;

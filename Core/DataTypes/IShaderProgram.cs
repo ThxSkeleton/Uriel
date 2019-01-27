@@ -4,6 +4,6 @@
     {
         uint ProgramName { get; }
 
-        StandardUniforms StandardUniforms { get; }
+        ShaderLocations StandardUniforms { get; }
     }
 }

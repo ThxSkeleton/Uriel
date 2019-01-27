@@ -57,5 +57,25 @@
             "    frag_color = vec4(col, 0);\n",
             "}\n"
         };
+
+
+        public static string[] _VertexSourceGL_Simplest = {
+            "#version 150 compatibility\n",
+            "in vec2 aPosition;\n",
+            "void main() {\n",
+            "	gl_Position = vec4(aPosition, 0.0, 1.0);\n",
+            "}\n"
+        };
+
+        public static string[] _VertexSourceGL_Simplest_Tex = {
+            "#version 150 compatibility\n",
+            "in vec2 aPosition;\n",
+            "in vec2 aTexCoord;\n",
+            "out vec2 fTexCoord;\n",
+            "void main() {\n",
+            "	gl_Position = vec4(aPosition, 0.0, 1.0);\n",
+            "   fTexCoord = aTexCoord;",
+            "}\n"
+        };
     }
 }
