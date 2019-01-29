@@ -14,7 +14,7 @@
 
         public static bool Enabled(int Location)
         {
-            return Location > 0;
+            return Location >= 0;
         }
 
         public void Validate()

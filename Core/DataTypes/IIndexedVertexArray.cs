@@ -1,6 +1,6 @@
-﻿namespace Uriel.DataTypes
+﻿namespace Uriel
 {
-    public interface IIndexedVertexArray
+    public interface IVertexArray
     {
         uint ArrayName { get; }
 

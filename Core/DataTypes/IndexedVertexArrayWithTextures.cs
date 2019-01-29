@@ -6,7 +6,7 @@ namespace Uriel.DataTypes
     /// <summary>
     /// Vertex array abstraction.
     /// </summary>
-    public class IndexedVertexArrayWithTexture : IIndexedVertexArray
+    public class IndexedVertexArrayWithTexture : IVertexArray
     {
         public IndexedVertexArrayWithTexture(IShaderProgram program, float[] position, float[] tex, uint[] indexes)
         {

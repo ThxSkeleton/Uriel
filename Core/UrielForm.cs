@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using Uriel.DataTypes;
+using Uriel.ShaderTypes;
 using Uriel.Support;
 
 namespace Uriel
@@ -110,7 +111,7 @@ namespace Uriel
             ShaderSelector.Width = LEFT_PANEL_WIDTH;
             ShaderSelector.Height = 400;
             ShaderSelector.DataSource = this.ShaderBlobs;
-            ShaderSelector.DisplayMember = "Name";
+            ShaderSelector.DisplayMember = "DisplayName";
 
             ErrorBox = new TextBox();
 
@@ -215,26 +216,34 @@ namespace Uriel
                 Gl.Enable(EnableCap.Multisample);
             }
 
-            BadShader = BuildProgramWithTexture("BadShader", BuiltInFragmentShaderSource.BadShader, BuiltInFragmentShaderSource._VertexSourceGL_Simplest);
+            var BadShader_Args = new ShaderCreationArguments()
+            {
+                Type = ShaderBlobType.Standard,
+                DisplayName = "BadShader",
+                FragmentShaderSource = new List<string>(BuiltInShaderSource.BadShader),
+            };
 
-            ShaderBlobs.Add(BuildProgramWithTexture("baseShader", BuiltInFragmentShaderSource.BaseShader, BuiltInFragmentShaderSource._VertexSourceGL_Simplest));
-            ShaderBlobs.Add(BuildProgramWithTexture("baseShader2", BuiltInFragmentShaderSource.BaseShader2, BuiltInFragmentShaderSource._VertexSourceGL_Simplest, @"Z:\ShaderStore\Mega-Skull.png"));
-            ShaderBlobs.Add(BuildProgramWithTexture("textureShader", BuiltInFragmentShaderSource.TextureTest, BuiltInFragmentShaderSource._VertexSourceGL_Simplest_Tex, @"Z:\ShaderStore\Mega-Skull.png"));
+            BadShader = BuildProgram(BadShader_Args);
 
-            GlErrorLogger.Check();          
+            foreach (var shaderBlob in ShaderZoo.BuildZoo())
+            {
+                ShaderBlobs.Add(BuildProgram(shaderBlob));
+            }
+
+            GlErrorLogger.Check();
 
             StartTime = DateTime.UtcNow;
         }
 
-        private ShaderBlob BuildProgramWithTexture(string name, string[] fragmentSource, string[] vertexSource, string texturePath = null)
+        private ShaderBlob BuildProgram(ShaderCreationArguments args)
         {
             try
             {
                 PngTexture texture = null;
 
-                if (texturePath != null)
+                if (args.Type.UseTexture)
                 {
-                    texture = new PngTexture(texturePath);
+                    texture = new PngTexture(args.TexturePath);
                     texture.Load();
                     texture.Create();
                     GlErrorLogger.Check();
@@ -244,36 +253,37 @@ namespace Uriel
                     GlErrorLogger.Check();
                 }
 
-                var _Program = new StandardFragmentShaderProgramPlusTexture(new List<string>(fragmentSource), new List<string>(vertexSource));
+                var vertexSource = BuiltInShaderSource.VertexSourceLookup(args.Type.VertexFormat, args.Type.VertexShaderVersion);
+
+                var _Program = new StandardFragmentShaderProgramPlusTexture(args.FragmentShaderSource, vertexSource);
                 GlErrorLogger.Check();
 
                 _Program.Link();
                 GlErrorLogger.Check();
 
-                IIndexedVertexArray _VertexArray = texturePath == null ? 
-                   (IIndexedVertexArray) new IndexedVertexArray(_Program, _ArrayPosition, _ArrayIndex) :
-                   new IndexedVertexArrayWithTexture(_Program, _ArrayPosition, _ArrayTex, _ArrayIndex);
+                IVertexArray _VertexArray = BuildVertexArray(_Program.StandardUniforms, args); 
 
-               GlErrorLogger.Check();
+                GlErrorLogger.Check();
 
                 return new ShaderBlob()
                 {
-                    Name = name,
-                    Good = true,
+                    DisplayName = args.DisplayName,
+                    CreationArguments = args,
+                    TreatAsGood = true,
                     Program = _Program,
                     VertexArray = _VertexArray,
-                    HasTexture = !(texture == null),
-                    TextureName = (texture==null) ? 0 : texture.TextureName,                  
+                    TextureName = !args.Type.UseTexture ? 0 : texture.TextureName,
                 };
             }
             catch (Exception e)
             {
-                StaticLogger.Logger.ErrorFormat("{1} - Shader Error {0}", name, e.ToString());
+                StaticLogger.Logger.ErrorFormat("{1} - Shader Error {0}", args.DisplayName, e.ToString());
 
                 return new ShaderBlob()
                 {
-                    Name = "X_" + name,
-                    Good = false,
+                    DisplayName = args.DisplayName,
+                    CreationArguments = args,
+                    TreatAsGood = false,
                     ErrorMessage = e.ToString(),
                     Program = BadShader.Program,
                     VertexArray = BadShader.VertexArray
@@ -281,6 +291,18 @@ namespace Uriel
             }
 
 
+        }
+
+        private IVertexArray BuildVertexArray(ShaderLocations uniforms, ShaderCreationArguments args)
+        {
+            if (!args.Type.UseIndexing)
+            {
+                return new VertexArray(uniforms, args.Type, VertexInformation.NonIndexed);
+            }
+            else
+            {
+                return new IndexedVertexArray(uniforms, args.Type, VertexInformation.Indexed);
+            }
         }
 
         private void Destroy()
@@ -305,7 +327,14 @@ namespace Uriel
 
                 var shaderActual = ShaderToyConverter.TranslateShader(shaderStringPostPendNewlines.ToList());
 
-                var newBlob = BuildProgramWithTexture(newShader.ConvenientName(), shaderActual.ToArray(), BuiltInFragmentShaderSource._VertexSourceGL_Simplest);
+                var newShaderArgs = new ShaderCreationArguments()
+                {
+                    Type = ShaderBlobType.Standard,
+                    DisplayName = newShader.ConvenientName(),
+                    FragmentShaderSource = shaderActual,
+                };
+
+                var newBlob = BuildProgram(newShaderArgs);
 
                 ErrorBox.Text = newBlob.ErrorMessage;
                 ErrorBox.Refresh();
@@ -340,9 +369,11 @@ namespace Uriel
 
             Vertex2f resolution = new Vertex2f(configuration.Length, configuration.Height);
 
+            Gl.UseProgram(currentShader.Program.ProgramName);
+
             SetUniforms(currentShader.Program.StandardUniforms, time, resolution);
 
-            if (currentShader.HasTexture)
+            if (currentShader.CreationArguments.Type.UseTexture)
             {
                 Gl.BindTexture(TextureTarget.Texture2d, currentShader.TextureName);
             }
@@ -351,7 +382,14 @@ namespace Uriel
             Gl.BindVertexArray(currentShader.VertexArray.ArrayName);
             GlErrorLogger.Check();
             // Draw triangle
-            Gl.DrawElements(PrimitiveType.Triangles, currentShader.VertexArray.Count, DrawElementsType.UnsignedInt, IntPtr.Zero);
+            if (currentShader.CreationArguments.Type.UseIndexing)
+            {
+                Gl.DrawElements(PrimitiveType.Triangles, currentShader.VertexArray.Count, DrawElementsType.UnsignedInt, IntPtr.Zero);
+            }
+            else
+            {
+                Gl.DrawArrays(PrimitiveType.Triangles, 0, currentShader.VertexArray.Count);
+            }
             GlErrorLogger.Check();
 
             this.FrameTracker.EndFrame();
@@ -371,75 +409,9 @@ namespace Uriel
             }
         }
 
-
-        #region Common Data
-
-        /// <summary>
-        /// Vertex position array.
-        /// </summary>
-        private static readonly float[] _ArrayPosition = new float[] {
-            -1.0f, -1.0f,
-            1.0f, -1.0f,
-            -1.0f, 1.0f,
-            1.0f, 1.0f
-        };
-
-        /// <summary>
-        /// texture Coordinates array
-        /// </summary>
-        private static readonly float[] _ArrayTex = new float[] {
-            -1.0f, -1.0f,      
-            1.0f, -1.0f,       
-            -1.0f, 1.0f,       
-            1.0f, 1.0f,        
-        };
-
-        /// <summary>
-        /// Vertex Index array.
-        /// </summary>
-        private static readonly uint[] _ArrayIndex = new uint[] {
-            0, 1, 2,
-            2, 1, 3
-        };
-
-        #endregion
-
-        //
-        // What is this? Disabled for now.
-        //
-        //private void GLDebugProc(DebugSource source, DebugType type, uint id, DebugSeverity severity, int length, IntPtr message, IntPtr userParam)
-        //{
-        //    string strMessage;
-
-        //    // Decode message string
-        //    unsafe
-        //    {
-        //        strMessage = Encoding.ASCII.GetString((byte*)message.ToPointer(), length);
-        //    }
-
-        //    StaticLogger.Logger.Info($"{source}, {type}, {severity}: {strMessage}");
-        //}
-
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
         }
-    }
-
-    public class ShaderBlob
-    {
-        public string Name { get; set; }
-
-        public bool Good { get; set; }
-
-        public string ErrorMessage { get; set; }
-
-        public IShaderProgram Program { get; set; }
-        public IIndexedVertexArray VertexArray { get; set; }
-
-        public bool HasTexture { get; set; }
-
-        public uint TextureName { get; set; }
-
     }
 }

@@ -1,25 +1,26 @@
 ﻿using OpenGL;
 using System;
+using Uriel.ShaderTypes;
 
 namespace Uriel.DataTypes
 {
     /// <summary>
     /// Vertex array abstraction.
     /// </summary>
-    public class IndexedVertexArray : IIndexedVertexArray, IDisposable
+    public class IndexedVertexArray : IVertexArray, IDisposable
     {
-        public IndexedVertexArray(IShaderProgram program, float[] positions, uint[] indexes)
+        public IndexedVertexArray(ShaderLocations uniforms, ShaderBlobType type, VertexInformation vertexInformation)
         {
-            this.Count = indexes.Length;
+            this.Count = vertexInformation.indexes.Length;
 
-            if (program == null)
+            if (uniforms == null)
             {
-                throw new ArgumentNullException(nameof(program));
+                throw new ArgumentNullException(nameof(uniforms));
             }
 
             // Allocate buffers referenced by this vertex array
-            _BufferPosition = new GlBuffer<float>(positions, BufferTarget.ArrayBuffer);
-            _BufferIndex = new GlBuffer<uint>(indexes, BufferTarget.ElementArrayBuffer);
+            _BufferPosition = new GlBuffer<float>(vertexInformation.positions, BufferTarget.ArrayBuffer);
+            _BufferIndex = new GlBuffer<uint>(vertexInformation.indexes, BufferTarget.ElementArrayBuffer);
 
             GlErrorLogger.Check();
 
@@ -38,10 +39,10 @@ namespace Uriel.DataTypes
             Gl.BindBuffer(BufferTarget.ArrayBuffer, _BufferPosition.BufferName);
 
             // Format the vertex information: 2 floats from the current buffer
-            Gl.VertexAttribPointer((uint)program.StandardUniforms.LocationPosition, 2, VertexAttribType.Float, false, 0, IntPtr.Zero);
+            Gl.VertexAttribPointer((uint)uniforms.LocationPosition, 2, VertexAttribType.Float, false, 0, IntPtr.Zero);
 
             // Enable attribute
-            Gl.EnableVertexAttribArray((uint)program.StandardUniforms.LocationPosition);
+            Gl.EnableVertexAttribArray((uint)uniforms.LocationPosition);
 
             GlErrorLogger.Check();
 

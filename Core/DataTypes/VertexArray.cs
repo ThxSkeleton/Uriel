@@ -1,42 +1,44 @@
 ﻿using OpenGL;
 using System;
+using Uriel.ShaderTypes;
 
 namespace Uriel.DataTypes
 {
     /// <summary>
     /// Vertex array abstraction.
     /// </summary>
-    public class VertexArray : IDisposable
+    public class VertexArray : IVertexArray, IDisposable
     {
-        public VertexArray(StandardFragmentShaderProgramPlusTexture program, float[] positions)
+        public VertexArray(ShaderLocations programLocations, ShaderBlobType type, VertexInformation vertexInformation)
         {
-            if (program == null)
+            if (programLocations == null)
             {
-                throw new ArgumentNullException(nameof(program));
+                throw new ArgumentNullException(nameof(programLocations));
             }
 
             // Allocate buffers referenced by this vertex array
-            _BufferPosition = new GlBuffer<float>(positions, BufferTarget.ArrayBuffer);
-            
+            _BufferPosition = new GlBuffer<float>(vertexInformation.positions, BufferTarget.ArrayBuffer);
+
+            Count = (vertexInformation.positions.Length / 2);
+
             // Generate VAO name
             ArrayName = Gl.GenVertexArray();
             // First bind create the VAO
             Gl.BindVertexArray(ArrayName);
 
-            // Set position attribute
-
             // Select the buffer object
             Gl.BindBuffer(BufferTarget.ArrayBuffer, _BufferPosition.BufferName);
             // Format the vertex information: 2 floats from the current buffer
-            Gl.VertexAttribPointer((uint)program.StandardUniforms.LocationPosition, 2, VertexAttribType.Float, false, 0, IntPtr.Zero);
+            Gl.VertexAttribPointer((uint)programLocations.LocationPosition, 2, VertexAttribType.Float, false, 0, IntPtr.Zero);
             // Enable attribute
-            Gl.EnableVertexAttribArray((uint)program.StandardUniforms.LocationPosition);
+            Gl.EnableVertexAttribArray((uint)programLocations.LocationPosition);
         }
-
-        public readonly uint ArrayName;
 
         private readonly GlBuffer<float> _BufferPosition;
 
+        public uint ArrayName { get; private set; }
+
+        public int Count { get; private set; }
 
         public void Dispose()
         {

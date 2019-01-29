@@ -97,6 +97,8 @@
     <Compile Include="DataTypes\IShaderProgram.cs" />
     <Compile Include="DataTypes\PngTexture.cs" />
     <Compile Include="DataTypes\StandardFragmentShaderProgramPlusTexture.cs" />
+    <Compile Include="DataTypes\VertexInformation.cs" />
+    <Compile Include="ShaderTypes\ShaderTypes.cs" />
     <Compile Include="Support\BuiltInShaderSource.cs" />
     <Compile Include="DataTypes\GlBuffer.cs" />
     <Compile Include="DataTypes\IndexedVertexArray.cs" />
@@ -109,6 +111,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Support\ShaderToyConverter.cs" />
+    <Compile Include="Support\ShaderZoo.cs" />
     <Compile Include="Support\StaticLogger.cs" />
     <Compile Include="Support\UrielConfiguration.cs" />
     <Compile Include="UrielForm.cs">
