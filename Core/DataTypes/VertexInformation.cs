@@ -83,12 +83,23 @@
         /// <summary>
         /// texture Coordinates array
         /// </summary>
-        private static readonly float[] _ArrayTex_Indexed = new float[] {
-            -1.0f, -1.0f,
+        private static readonly float[] _ArrayTex_Indexed_Old = new float[] {
+            -0.0f, -1.0f,
             1.0f, -1.0f,
             -1.0f, 1.0f,
             1.0f, 1.0f,
         };
+
+        /// <summary>
+        /// texture Coordinates array
+        /// </summary>
+        private static readonly float[] _ArrayTex_Indexed = new float[] {
+            0.0f, 0.0f,
+            1.0f, 0.0f,
+            0.0f, -1.0f,
+            1.0f, -1.0f,
+        };
+
 
         /// <summary>
         /// texture Coordinates array
@@ -108,7 +119,7 @@
         /// </summary>
         private static readonly uint[] _ArrayIndex = new uint[] {
             0, 1, 2,
-            2, 1, 3
+            3, 2, 1,
         };
 
         #endregion

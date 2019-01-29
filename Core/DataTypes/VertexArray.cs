@@ -55,12 +55,24 @@ namespace Uriel.DataTypes
                 // Enable attribute
                 Gl.EnableVertexAttribArray((uint)programLocations.LocationColor);
             }
+
+            if (type.VertexFormat == VertexFormat.WithTexture || type.VertexFormat == VertexFormat.WithColorAndTexture)
+            {
+                _BufferTex = new GlBuffer<float>(vertexInformation.textures, BufferTarget.ArrayBuffer);
+
+                Gl.BindBuffer(BufferTarget.ArrayBuffer, _BufferTex.BufferName);
+                // Format the vertex information: 2 floats from the current buffer
+                Gl.VertexAttribPointer((uint)programLocations.LocationTexture, 2, VertexAttribType.Float, false, 0, IntPtr.Zero);
+                // Enable attribute
+                Gl.EnableVertexAttribArray((uint)programLocations.LocationTexture);
+            }
+
         }
 
         private readonly GlBuffer<uint> _BufferIndex;
         private readonly GlBuffer<float> _BufferPosition;
         private readonly GlBuffer<float> _BufferColor;
-
+        private readonly GlBuffer<float> _BufferTex;
 
         public uint ArrayName { get; private set; }
 

@@ -1,15 +1,20 @@
 ﻿using OpenGL;
 using System;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Media.Imaging;
+using PixelFormat = OpenGL.PixelFormat;
 
 namespace Uriel.DataTypes
 {
     public class PngTexture
     {
         private readonly string filePath;
-        private BitmapFrame bitmapSource;
+
+        private Bitmap bitmap;
+        private PixelFormat format;
 
         public PngTexture(string filePath)
         {
@@ -20,11 +25,31 @@ namespace Uriel.DataTypes
         {
             Stream imageStreamSource = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
             PngBitmapDecoder decoder = new PngBitmapDecoder(imageStreamSource, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
-            this.bitmapSource = decoder.Frames[0];
-            this.HeightInPixels = this.bitmapSource.PixelHeight;
-            this.WidthInPixels = this.bitmapSource.PixelWidth;
+            var bitmapSource = decoder.Frames[0];
+            var bitsPerPixel = bitmapSource.Format.BitsPerPixel;
+            this.format = BppToPixelFormat(bitsPerPixel);
+            this.bitmap = BitmapFromSource(bitmapSource);
+            this.HeightInPixels = bitmapSource.PixelHeight;
+            this.WidthInPixels = bitmapSource.PixelWidth;
             this.Loaded = true;
         }
+
+        private PixelFormat BppToPixelFormat(int bpp)
+        {
+            if (bpp == 24)
+            {
+                return PixelFormat.Bgr;
+            }
+            else if (bpp == 32)
+            {
+                return PixelFormat.Bgra;
+            }
+            else
+            {
+                throw new InvalidOperationException(String.Format("Cannot Convert BPP {0} from {1} into a PixelFormat.", bpp, this.filePath));
+            }
+        }
+
 
         public void Create()
         {
@@ -32,28 +57,37 @@ namespace Uriel.DataTypes
             Gl.BindTexture(TextureTarget.Texture2d, TextureName);
             GlErrorLogger.Check();
 
-            Gl.TextureParameter(TextureName, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-            GlErrorLogger.Check();
-            Gl.TextureParameter(TextureName, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-            GlErrorLogger.Check();
+            //Gl.TextureParameter(TextureName, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+            //GlErrorLogger.Check();
+            //Gl.TextureParameter(TextureName, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            //GlErrorLogger.Check();
 
-            Gl.TextureParameter(TextureName, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
-            GlErrorLogger.Check();
-            Gl.TextureParameter(TextureName, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
-            GlErrorLogger.Check();
+            //Gl.TextureParameter(TextureName, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+            //GlErrorLogger.Check();
+            //Gl.TextureParameter(TextureName, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+            //GlErrorLogger.Check();
 
-            byte[] asBytes = BitmapSourceToArray(bitmapSource);
-
-            IntPtr unmanagedPointer = Marshal.AllocHGlobal(asBytes.Length);
-            Marshal.Copy(asBytes, 0, unmanagedPointer, asBytes.Length);
-
-            Gl.TexImage2D(TextureTarget.Texture2d, 0, InternalFormat.Rgba8, bitmapSource.PixelWidth, bitmapSource.PixelHeight, 0, PixelFormat.Bgra, PixelType.UnsignedByte, unmanagedPointer);
             GlErrorLogger.Check();
             Gl.BindTexture(TextureTarget.Texture2d, TextureName);
 
+            BitmapData data = null;
+
+            try
+            {
+                data = bitmap.LockBits(new Rectangle(0, 0, WidthInPixels, HeightInPixels), System.Drawing.Imaging.ImageLockMode.ReadOnly, bitmap.PixelFormat);
+                Gl.TexImage2D(TextureTarget.Texture2d, 0, InternalFormat.Rgba, WidthInPixels, HeightInPixels, 0, this.format, PixelType.UnsignedByte, data.Scan0);
+            }
+            finally
+            {
+                if (data != null)
+                {
+                    bitmap.UnlockBits(data);
+                }
+            }
 
             GlErrorLogger.Check();
-            Marshal.FreeHGlobal(unmanagedPointer);
+
+            Gl.GenerateMipmap(TextureTarget.Texture2d);
 
             this.Created = true;
         }
@@ -67,6 +101,19 @@ namespace Uriel.DataTypes
             bitmapSource.CopyPixels(pixels, stride, 0);
 
             return pixels;
+        }
+
+        public static Bitmap BitmapFromSource(BitmapSource bitmapsource)
+        {
+            Bitmap bitmap;
+            using (var outStream = new MemoryStream())
+            {
+                BitmapEncoder enc = new BmpBitmapEncoder();
+                enc.Frames.Add(BitmapFrame.Create(bitmapsource));
+                enc.Save(outStream);
+                bitmap = new Bitmap(outStream);
+            }
+            return bitmap;
         }
 
         public uint TextureName { get; private set; }

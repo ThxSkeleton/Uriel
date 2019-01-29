@@ -82,15 +82,28 @@ namespace Uriel
         };
 
         public static string[] TextureTest = {
-            "#version 330 core\n",
-            "layout(location = 0) out vec4 frag_color;\n",
+            "#version 150 compatibility\n",
             "in vec2 fTexCoord;\n",
             "uniform sampler2D myTextureSampler;\n",
             "void main() {\n",
-            "    vec3 col = vec3(.5f, .1f, .1f);\n",
-            "    frag_color = vec4(col, 0);\n",
+            "    vec3 col = texture2D(myTextureSampler, fTexCoord).xyz;\n",
+            "    gl_FragColor = vec4(col, 0);\n",
             "}\n"
         };
+
+        public static string[] TextureTest_2 = {
+            "#version 150 compatibility\n",
+            "uniform float u_time;\n",
+            "uniform vec2 resolution;\n",
+            "in vec2 fTexCoord;\n",
+            "uniform sampler2D myTextureSampler;\n",
+            "void main() {\n",
+            "   vec2 normalized = gl_FragCoord.xy/resolution;\n",
+            "   vec3 col = texture2D(myTextureSampler, fTexCoord).xyz;\n",
+            "   gl_FragColor = vec4(col, 0);\n",
+            "}\n"
+        };
+
 
 
         public static List<string> VertexSourceLookup(VertexFormat vertexFormat, ShaderVersion vertexShaderVersion)
@@ -152,7 +165,6 @@ namespace Uriel
         };
 
         private static string[] _VertexSourceGL_Tex = {
-            "#version 150 compatibility\n",
             "in vec2 aPosition;\n",
             "in vec2 aTexCoord;\n",
             "out vec2 fTexCoord;\n",
