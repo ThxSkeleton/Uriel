@@ -63,18 +63,21 @@
             1.0f, 1.0f
         };
 
-        private static readonly float[] _ArrayColor_NonIndexed = new float[] {
-            0.0f, 0.0f, 1.0f,
-            0.0f, 1.0f, 0.0f,
-            1.0f, 0.0f, 0.0f,
-            0.0f, 0.0f, 1.0f,
-        };
-
         private static readonly float[] _ArrayColor_Indexed = new float[] {
             0.0f, 0.0f, 1.0f,
             0.0f, 1.0f, 0.0f,
             1.0f, 0.0f, 0.0f,
+            0.2f, 0.2f, 0.2f,
+        };
+
+        private static readonly float[] _ArrayColor_NonIndexed = new float[] {
             0.0f, 0.0f, 1.0f,
+            0.0f, 1.0f, 0.0f,
+            1.0f, 0.0f, 0.0f,
+
+            0.0f, 1.0f, 0.0f,
+            1.0f, 0.0f, 0.0f,
+            0.2f, 0.2f, 0.2f,
         };
 
         /// <summary>

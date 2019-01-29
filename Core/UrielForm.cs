@@ -301,7 +301,7 @@ namespace Uriel
             }
             else
             {
-                return new IndexedVertexArray(uniforms, args.Type, VertexInformation.Indexed);
+                return new VertexArray(uniforms, args.Type, VertexInformation.Indexed);
             }
         }
 

@@ -79,7 +79,23 @@ namespace Uriel.ShaderTypes
             }
         }
 
-        public static ShaderBlobType ColorTest
+        public static ShaderBlobType Color_NoIndex
+        {
+            get
+            {
+                return new ShaderBlobType()
+                {
+                    UseTexture = false,
+                    VertexFormat = VertexFormat.WithColor,
+                    VertexShaderVersion = ShaderVersion.Version150Compatability,
+                    UseIndexing = false,
+                    FragmentShaderUniformType = FragmentShaderUniformType.DimensionAndTime,
+                    FragmentShaderVersion = ShaderVersion.Version150Compatability
+                };
+            }
+        }
+
+        public static ShaderBlobType Color_WithIndex
         {
             get
             {

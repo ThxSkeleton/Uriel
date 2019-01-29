@@ -32,9 +32,35 @@ namespace Uriel.DataTypes
             Gl.VertexAttribPointer((uint)programLocations.LocationPosition, 2, VertexAttribType.Float, false, 0, IntPtr.Zero);
             // Enable attribute
             Gl.EnableVertexAttribArray((uint)programLocations.LocationPosition);
+
+            if (type.UseIndexing)
+            {
+                _BufferIndex = new GlBuffer<uint>(vertexInformation.indexes, BufferTarget.ElementArrayBuffer);
+                Gl.BindBuffer(BufferTarget.ElementArrayBuffer, _BufferIndex.BufferName);
+
+                Count = vertexInformation.indexes.Length;
+            }
+            else
+            {
+                Count = (vertexInformation.positions.Length / 2);
+            }
+
+            if (type.VertexFormat == VertexFormat.WithColor || type.VertexFormat == VertexFormat.WithColorAndTexture)
+            {
+                _BufferColor = new GlBuffer<float>(vertexInformation.colors, BufferTarget.ArrayBuffer);
+
+                Gl.BindBuffer(BufferTarget.ArrayBuffer, _BufferColor.BufferName);
+                // Format the vertex information: 3 floats from the current buffer
+                Gl.VertexAttribPointer((uint)programLocations.LocationColor, 3, VertexAttribType.Float, false, 0, IntPtr.Zero);
+                // Enable attribute
+                Gl.EnableVertexAttribArray((uint)programLocations.LocationColor);
+            }
         }
 
+        private readonly GlBuffer<uint> _BufferIndex;
         private readonly GlBuffer<float> _BufferPosition;
+        private readonly GlBuffer<float> _BufferColor;
+
 
         public uint ArrayName { get; private set; }
 

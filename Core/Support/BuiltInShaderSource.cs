@@ -68,6 +68,19 @@ namespace Uriel
             "}\n"
         };
 
+        public static string[] ColorTest =
+        {
+            "#version 150 compatibility\n",
+            "uniform float u_time;\n",
+            "uniform vec2 resolution;\n",
+            "in vec3 vColor;\n",
+            "void main() {\n",
+            "   vec2 normalized = gl_FragCoord.xy/resolution;\n",
+            "   vec3 col = vColor*sin(u_time);\n",
+            "	gl_FragColor = vec4(col, 1.0);\n",
+            "}\n"
+        };
+
         public static string[] TextureTest = {
             "#version 330 core\n",
             "layout(location = 0) out vec4 frag_color;\n",
@@ -129,7 +142,6 @@ namespace Uriel
         };
 
         private static string[] _VertexSourceGL_Color = {
-            "#version 150 compatibility\n",
             "in vec2 aPosition;\n",
             "in vec3 aColor;\n",
             "out vec3 vColor;\n",

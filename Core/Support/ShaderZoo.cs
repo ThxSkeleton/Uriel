@@ -48,11 +48,27 @@ namespace Uriel.Support
                 FragmentShaderSource = new List<string>(BuiltInShaderSource.BaseShaderAlternate),
             };
 
+            var ColorNoIndex_Args = new ShaderCreationArguments()
+            {
+                Type = ShaderBlobType.Color_NoIndex,
+                DisplayName = "Color_NoIndex",
+                FragmentShaderSource = new List<string>(BuiltInShaderSource.ColorTest),
+            };
+
+            var ColorIndex_Args = new ShaderCreationArguments()
+            {
+                Type = ShaderBlobType.Color_WithIndex,
+                DisplayName = "Color_Index",
+                FragmentShaderSource = new List<string>(BuiltInShaderSource.ColorTest),
+            };
+
             toReturn.Add(SimplestShader_Args);
             toReturn.Add(SimplestShader_WithTime_Args);
             toReturn.Add(BaseShader_Args);
             toReturn.Add(BaseShader2_Args);
             toReturn.Add(BaseShaderAlternate_Args);
+            toReturn.Add(ColorNoIndex_Args);
+            toReturn.Add(ColorIndex_Args);
 
             return toReturn;
         }
