@@ -1,6 +1,6 @@
 ﻿namespace Uriel.DataTypes
 {
-    public class VertexInformation
+    public class RawVertexData
     {
         public float[] positions { get; set; }
 
@@ -10,13 +10,11 @@
 
         public float[] textures { get; set; }
 
-        public int CountOverride { get; set; }
-
-        public static VertexInformation NonIndexed
+        public static RawVertexData NonIndexed
         {
             get
             {
-                return new VertexInformation()
+                return new RawVertexData()
                 {
                     positions = _ArrayPosition_NonIndexed,
                     colors = _ArrayColor_NonIndexed,
@@ -26,11 +24,11 @@
             }
         }
 
-        public static VertexInformation Indexed
+        public static RawVertexData Indexed
         {
             get
             {
-                return new VertexInformation()
+                return new RawVertexData()
                 {
                     positions = _ArrayPosition_Indexed,
                     colors = _ArrayColor_Indexed,
@@ -80,15 +78,6 @@
             0.2f, 0.2f, 0.2f,
         };
 
-        /// <summary>
-        /// texture Coordinates array
-        /// </summary>
-        private static readonly float[] _ArrayTex_Indexed_Old = new float[] {
-            -0.0f, -1.0f,
-            1.0f, -1.0f,
-            -1.0f, 1.0f,
-            1.0f, 1.0f,
-        };
 
         /// <summary>
         /// texture Coordinates array

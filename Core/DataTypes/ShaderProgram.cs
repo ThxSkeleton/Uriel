@@ -5,13 +5,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Uriel.DataTypes;
+using Uriel.ShaderTypes;
 
 namespace Uriel
 {
-    public class StandardFragmentShaderProgramPlusTexture : IShaderProgram
+    public class ShaderProgram : IShaderProgram
     {
         public uint ProgramName { get; private set; }
-        public ShaderLocations StandardUniforms { get; private set; }
+        public UniformLocations UniformLocations { get; private set; }
+        public VertexLocations VertexLocations { get; private set; }
 
         /// <summary>
         /// These are used for validation only.
@@ -20,11 +22,15 @@ namespace Uriel
 
         private readonly List<string> FragmentSource;
         private readonly List<string> VertexSource;
+        private readonly FragmentShaderUniformType expectedUniforms;
+        private readonly VertexFormat expectedVertexes;
 
-        public StandardFragmentShaderProgramPlusTexture(List<string> fragmentSource, List<string> vertexSource) 
+        public ShaderProgram(List<string> fragmentSource, List<string> vertexSource, FragmentShaderUniformType expectedUniforms, VertexFormat expectedVertexes) 
         {
             this.FragmentSource = fragmentSource;
             this.VertexSource = vertexSource;
+            this.expectedUniforms = expectedUniforms;
+            this.expectedVertexes = expectedVertexes;
         }
 
         public void Link()
@@ -48,17 +54,26 @@ namespace Uriel
 
                 this.LinkedStatus = linked != 0;
 
-                this.StandardUniforms = new ShaderLocations()
+                Validate();
+
+                this.UniformLocations = new UniformLocations()
                 {
-                    Location_u_time = Gl.GetUniformLocation(ProgramName, "u_time"),
-                    Location_resolution = Gl.GetUniformLocation(ProgramName, "resolution"),
-                    LocationPosition = Gl.GetAttribLocation(ProgramName, "aPosition"),
-                    LocationColor = Gl.GetAttribLocation(ProgramName, "aColor"),
-                    LocationTexture = Gl.GetAttribLocation(ProgramName, "aTexCoord")
+                    Location_iTime = Gl.GetUniformLocation(ProgramName, "iTime"),
+                    Location_iResolution = Gl.GetUniformLocation(ProgramName, "iResolution"),
                 };
+
+                this.UniformLocations.ValidateAllPresent(expectedUniforms);
+
+                this.VertexLocations = new VertexLocations()
+                {
+                    Location_Position = Gl.GetAttribLocation(ProgramName, "aPosition"),
+                    Location_Color = Gl.GetAttribLocation(ProgramName, "aColor"),
+                    Location_Texture = Gl.GetAttribLocation(ProgramName, "aTexCoord")
+                };
+
+                this.VertexLocations.ValidateAllPresent(expectedVertexes);
             }
 
-            Validate();
         }
 
         private void Validate()

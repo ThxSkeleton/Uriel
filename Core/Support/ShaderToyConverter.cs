@@ -26,11 +26,9 @@ namespace Uriel.Support
             {
                 return new List<ToyTranslation>()
                 {
-                    new ToyTranslation("void mainImage( out vec4 fragColor, in vec2 fragCoord )", "void main()"),
-                    new ToyTranslation("iResolution", "resolution"),
-                    new ToyTranslation("iTime", "u_time"),
-                    new ToyTranslation("fragColor", "gl_FragColor"),
-                    new ToyTranslation("fragCoord", "gl_FragCoord"),
+                    // new ToyTranslation("void mainImage( out vec4 fragColor, in vec2 fragCoord )", "void main()"),
+                    // new ToyTranslation("fragColor", "gl_FragColor"),
+                    // new ToyTranslation("fragCoord", "gl_FragCoord"),
                 };
             }
         }
@@ -44,6 +42,21 @@ namespace Uriel.Support
                     "uniform float u_time;\n",
                     "uniform vec2 resolution;\n",
                     "const vec4 iMouse = vec4(-2.0f);\n"
+                };
+            }
+        }
+
+        private static List<string> Postpends
+        {
+            get
+            {
+                return new List<string>(){
+                    "void main()\n",
+                    "{\n",
+                    "    vec4 col;\n",
+                    "    mainImage(col, gl_FragCoord);\n",
+                    "    gl_FragColor = col;\n",
+                    "}\n"
                 };
             }
         }
@@ -69,6 +82,7 @@ namespace Uriel.Support
             List<string> toReturn = Prepends;
             List<String> newShader = inputShader.Select(FindReplace_All).ToList();
             toReturn.AddRange(newShader);
+            toReturn.AddRange(Postpends);
             return toReturn;
         }
 

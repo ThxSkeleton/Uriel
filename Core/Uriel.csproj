@@ -92,17 +92,16 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DataTypes\FormatEnumBag.cs" />
     <Compile Include="DataTypes\IShaderProgram.cs" />
     <Compile Include="DataTypes\IVertexArray.cs" />
     <Compile Include="DataTypes\PngTexture.cs" />
-    <Compile Include="DataTypes\StandardFragmentShaderProgramPlusTexture.cs" />
-    <Compile Include="DataTypes\VertexInformation.cs" />
+    <Compile Include="DataTypes\RawVertexData.cs" />
+    <Compile Include="DataTypes\ShaderProgram.cs" />
     <Compile Include="ShaderTypes\ShaderTypes.cs" />
     <Compile Include="Support\BuiltInShaderSource.cs" />
     <Compile Include="DataTypes\GlBuffer.cs" />
     <Compile Include="DataTypes\ShaderObject.cs" />
-    <Compile Include="DataTypes\StandardUniforms.cs" />
+    <Compile Include="DataTypes\Locations.cs" />
     <Compile Include="DataTypes\VertexArray.cs" />
     <Compile Include="Support\ShaderFileWatcher.cs" />
     <Compile Include="Support\FrameTracker.cs" />
@@ -113,6 +112,7 @@
     <Compile Include="Support\ShaderZoo.cs" />
     <Compile Include="Support\StaticLogger.cs" />
     <Compile Include="Support\UrielConfiguration.cs" />
+    <Compile Include="Support\VertexShaderSource.cs" />
     <Compile Include="UrielForm.cs">
       <SubType>Form</SubType>
     </Compile>

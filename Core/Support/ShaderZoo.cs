@@ -17,14 +17,14 @@ namespace Uriel.Support
 
             var SimplestShader_Args = new ShaderCreationArguments()
             {
-                Type = ShaderBlobType.BabysFirstShader,
+                Type = ShaderBlobType.PlainVertexNoUniforms,
                 DisplayName = "SimplestShader",
                 FragmentShaderSource = new List<string>(BuiltInShaderSource.SimpleShader),
             };
 
             var SimplestShader_WithTime_Args = new ShaderCreationArguments()
             {
-                Type = ShaderBlobType.BabysSecondShader,
+                Type = ShaderBlobType.Time,
                 DisplayName = "SimplestShader_WithTime",
                 FragmentShaderSource = new List<string>(BuiltInShaderSource.ShaderNoResolution),
             };
@@ -84,7 +84,7 @@ namespace Uriel.Support
             {
                 Type = ShaderBlobType.TextureStandard,
                 DisplayName = "TexTest2",
-                FragmentShaderSource = new List<string>(BuiltInShaderSource.TextureTest_2),
+                FragmentShaderSource = new List<string>(BuiltInShaderSource.TextureTest),
                 TexturePath = @"Z:\ShaderStore\ColorTest2.png"
             };
 
@@ -155,27 +155,5 @@ namespace Uriel.Support
 
             return toReturn;
         }
-
-        //public static List<ShaderCreationArguments> TexPossible()
-        //{
-        //    List<ShaderCreationArguments> arguments = new List<ShaderCreationArguments>();
-
-        //    var bags = FormatEnumBag.GenerateLotsOfBags();
-        //    foreach(var bag in bags)
-        //    {
-        //        arguments.Add(
-        //            new ShaderCreationArguments()
-        //            {
-        //                Type = ShaderBlobType.TextureStandard,
-        //                DisplayName = bag.DisplayString(),
-        //                FragmentShaderSource = new List<string>(BuiltInShaderSource.TextureTest),
-        //                TexturePath = @"Z:\ShaderStore\ColorTest.png",
-        //                FormatEnumBag = bag,
-        //            });
-        //    }
-
-        //    return arguments;
-        //}
-
     }
 }

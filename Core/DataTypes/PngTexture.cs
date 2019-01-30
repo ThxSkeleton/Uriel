@@ -92,17 +92,6 @@ namespace Uriel.DataTypes
             this.Created = true;
         }
 
-        private byte[] BitmapSourceToArray(BitmapSource bitmapSource)
-        {
-            // Stride = (width) x (bytes per pixel)
-            int stride = (int)bitmapSource.PixelWidth * (bitmapSource.Format.BitsPerPixel / 8);
-            byte[] pixels = new byte[(int)bitmapSource.PixelHeight * stride];
-
-            bitmapSource.CopyPixels(pixels, stride, 0);
-
-            return pixels;
-        }
-
         public static Bitmap BitmapFromSource(BitmapSource bitmapsource)
         {
             Bitmap bitmap;

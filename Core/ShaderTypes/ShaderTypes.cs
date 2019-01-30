@@ -32,7 +32,7 @@ namespace Uriel.ShaderTypes
 
     public class ShaderBlobType
     {
-        public static ShaderBlobType BabysFirstShader
+        public static ShaderBlobType PlainVertexNoUniforms
         {
             get
             {
@@ -48,7 +48,24 @@ namespace Uriel.ShaderTypes
             }
         }
 
-        public static ShaderBlobType BabysSecondShader
+        public static ShaderBlobType Time
+        {
+            get
+            {
+                return new ShaderBlobType()
+                {
+                    UseTexture = false,
+                    VertexFormat = VertexFormat.Plain,
+                    VertexShaderVersion = ShaderVersion.Version150Compatability,
+                    UseIndexing = false,
+                    FragmentShaderUniformType = FragmentShaderUniformType.Time,
+                    FragmentShaderVersion = ShaderVersion.Version150Compatability
+                };
+            }
+        }
+
+
+        public static ShaderBlobType DimensionAndTime
         {
             get
             {
@@ -90,7 +107,7 @@ namespace Uriel.ShaderTypes
                     VertexFormat = VertexFormat.WithColor,
                     VertexShaderVersion = ShaderVersion.Version150Compatability,
                     UseIndexing = false,
-                    FragmentShaderUniformType = FragmentShaderUniformType.DimensionAndTime,
+                    FragmentShaderUniformType = FragmentShaderUniformType.Time,
                     FragmentShaderVersion = ShaderVersion.Version150Compatability
                 };
             }
@@ -106,7 +123,7 @@ namespace Uriel.ShaderTypes
                     VertexFormat = VertexFormat.WithColor,
                     VertexShaderVersion = ShaderVersion.Version150Compatability,
                     UseIndexing = true,
-                    FragmentShaderUniformType = FragmentShaderUniformType.DimensionAndTime,
+                    FragmentShaderUniformType = FragmentShaderUniformType.Time,
                     FragmentShaderVersion = ShaderVersion.Version150Compatability
                 };
             }
@@ -122,7 +139,7 @@ namespace Uriel.ShaderTypes
                     VertexFormat = VertexFormat.WithTexture,
                     VertexShaderVersion = ShaderVersion.Version150Compatability,
                     UseIndexing = true,
-                    FragmentShaderUniformType = FragmentShaderUniformType.DimensionAndTime,
+                    FragmentShaderUniformType = FragmentShaderUniformType.None,
                     FragmentShaderVersion = ShaderVersion.Version150Compatability
                 };
             }
@@ -157,6 +174,7 @@ namespace Uriel.ShaderTypes
     {
         None,
         Dimension,
+        Time,
         DimensionAndTime,
         ShaderToy,
     }

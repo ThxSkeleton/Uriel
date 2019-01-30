@@ -203,13 +203,6 @@ namespace Uriel
 
         private void ContextCreated(uint multisampleBits)
         {
-            //// GL Debugging
-            //if (Gl.CurrentExtensions != null && Gl.CurrentExtensions.DebugOutput_ARB)
-            //{
-            //    Gl.DebugMessageCallback(GLDebugProc, IntPtr.Zero);
-            //    Gl.DebugMessageControl(DebugSource.DontCare, DebugType.DontCare, DebugSeverity.DontCare, 0, null, true);
-            //}
-
             // Uses multisampling, if available
             if (Gl.CurrentVersion != null && Gl.CurrentVersion.Api == KhronosVersion.ApiGl && multisampleBits > 0)
             {
@@ -218,7 +211,7 @@ namespace Uriel
 
             var BadShader_Args = new ShaderCreationArguments()
             {
-                Type = ShaderBlobType.Standard,
+                Type = ShaderBlobType.Time,
                 DisplayName = "BadShader",
                 FragmentShaderSource = new List<string>(BuiltInShaderSource.BadShader),
             };
@@ -253,15 +246,15 @@ namespace Uriel
                     GlErrorLogger.Check();
                 }
 
-                var vertexSource = BuiltInShaderSource.VertexSourceLookup(args.Type.VertexFormat, args.Type.VertexShaderVersion);
+                var vertexSource = VertexShaderSource.VertexSourceLookup(args.Type.VertexFormat, args.Type.VertexShaderVersion);
 
-                var _Program = new StandardFragmentShaderProgramPlusTexture(args.FragmentShaderSource, vertexSource);
+                var _Program = new ShaderProgram(args.FragmentShaderSource, vertexSource, args.Type.FragmentShaderUniformType, args.Type.VertexFormat);
                 GlErrorLogger.Check();
 
                 _Program.Link();
                 GlErrorLogger.Check();
 
-                IVertexArray _VertexArray = BuildVertexArray(_Program.StandardUniforms, args); 
+                IVertexArray _VertexArray = BuildVertexArray(_Program.VertexLocations, args); 
 
                 GlErrorLogger.Check();
 
@@ -282,26 +275,24 @@ namespace Uriel
                 return new ShaderBlob()
                 {
                     DisplayName = args.DisplayName,
-                    CreationArguments = args,
+                    CreationArguments = BadShader.CreationArguments,
                     TreatAsGood = false,
                     ErrorMessage = e.ToString(),
                     Program = BadShader.Program,
                     VertexArray = BadShader.VertexArray
                 };
             }
-
-
         }
 
-        private IVertexArray BuildVertexArray(ShaderLocations uniforms, ShaderCreationArguments args)
+        private IVertexArray BuildVertexArray(VertexLocations vertexLocations, ShaderCreationArguments args)
         {
             if (!args.Type.UseIndexing)
             {
-                return new VertexArray(uniforms, args.Type, VertexInformation.NonIndexed);
+                return new VertexArray(vertexLocations, args.Type, RawVertexData.NonIndexed);
             }
             else
             {
-                return new VertexArray(uniforms, args.Type, VertexInformation.Indexed);
+                return new VertexArray(vertexLocations, args.Type, RawVertexData.Indexed);
             }
         }
 
@@ -371,7 +362,7 @@ namespace Uriel
 
             Gl.UseProgram(currentShader.Program.ProgramName);
 
-            SetUniforms(currentShader.Program.StandardUniforms, time, resolution);
+            SetUniforms(currentShader.Program.UniformLocations, time, resolution);
 
             if (currentShader.CreationArguments.Type.UseTexture)
             {
@@ -396,16 +387,16 @@ namespace Uriel
             StatusStrip_Update();
         }
 
-        private void SetUniforms(ShaderLocations uniforms, double time, Vertex2f resolution)
+        private void SetUniforms(UniformLocations uniforms, double time, Vertex2f resolution)
         {
-            if (ShaderLocations.Enabled(uniforms.Location_u_time))
+            if (LocationValidation.Enabled(uniforms.Location_iTime))
             {
-                Gl.Uniform1f<float>(uniforms.Location_u_time, 1, (float)time);
+                Gl.Uniform1f<float>(uniforms.Location_iTime, 1, (float)time);
             }
 
-            if (ShaderLocations.Enabled(uniforms.Location_resolution))
+            if (LocationValidation.Enabled(uniforms.Location_iResolution))
             {
-                Gl.Uniform2f(uniforms.Location_resolution, 1, resolution);
+                Gl.Uniform2f(uniforms.Location_iResolution, 1, resolution);
             }
         }
 

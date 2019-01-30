@@ -9,11 +9,11 @@ namespace Uriel.DataTypes
     /// </summary>
     public class VertexArray : IVertexArray, IDisposable
     {
-        public VertexArray(ShaderLocations programLocations, ShaderBlobType type, VertexInformation vertexInformation)
+        public VertexArray(VertexLocations vertexLocations, ShaderBlobType type, RawVertexData vertexInformation)
         {
-            if (programLocations == null)
+            if (vertexLocations == null)
             {
-                throw new ArgumentNullException(nameof(programLocations));
+                throw new ArgumentNullException(nameof(vertexLocations));
             }
 
             // Allocate buffers referenced by this vertex array
@@ -29,9 +29,9 @@ namespace Uriel.DataTypes
             // Select the buffer object
             Gl.BindBuffer(BufferTarget.ArrayBuffer, _BufferPosition.BufferName);
             // Format the vertex information: 2 floats from the current buffer
-            Gl.VertexAttribPointer((uint)programLocations.LocationPosition, 2, VertexAttribType.Float, false, 0, IntPtr.Zero);
+            Gl.VertexAttribPointer((uint)vertexLocations.Location_Position, 2, VertexAttribType.Float, false, 0, IntPtr.Zero);
             // Enable attribute
-            Gl.EnableVertexAttribArray((uint)programLocations.LocationPosition);
+            Gl.EnableVertexAttribArray((uint)vertexLocations.Location_Position);
 
             if (type.UseIndexing)
             {
@@ -51,9 +51,9 @@ namespace Uriel.DataTypes
 
                 Gl.BindBuffer(BufferTarget.ArrayBuffer, _BufferColor.BufferName);
                 // Format the vertex information: 3 floats from the current buffer
-                Gl.VertexAttribPointer((uint)programLocations.LocationColor, 3, VertexAttribType.Float, false, 0, IntPtr.Zero);
+                Gl.VertexAttribPointer((uint)vertexLocations.Location_Color, 3, VertexAttribType.Float, false, 0, IntPtr.Zero);
                 // Enable attribute
-                Gl.EnableVertexAttribArray((uint)programLocations.LocationColor);
+                Gl.EnableVertexAttribArray((uint)vertexLocations.Location_Color);
             }
 
             if (type.VertexFormat == VertexFormat.WithTexture || type.VertexFormat == VertexFormat.WithColorAndTexture)
@@ -62,9 +62,9 @@ namespace Uriel.DataTypes
 
                 Gl.BindBuffer(BufferTarget.ArrayBuffer, _BufferTex.BufferName);
                 // Format the vertex information: 2 floats from the current buffer
-                Gl.VertexAttribPointer((uint)programLocations.LocationTexture, 2, VertexAttribType.Float, false, 0, IntPtr.Zero);
+                Gl.VertexAttribPointer((uint)vertexLocations.Location_Texture, 2, VertexAttribType.Float, false, 0, IntPtr.Zero);
                 // Enable attribute
-                Gl.EnableVertexAttribArray((uint)programLocations.LocationTexture);
+                Gl.EnableVertexAttribArray((uint)vertexLocations.Location_Texture);
             }
 
         }

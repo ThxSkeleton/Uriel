@@ -23,10 +23,6 @@ namespace Uriel
 
             watcher.NotifyFilter = NotifyFilters.LastWrite;
 
-            // Old example Aerts
-            // NotifyFilters.LastAccess | NotifyFilters.LastWrite
-            //| NotifyFilters.FileName | NotifyFilters.DirectoryName;
-
             // Only watch glsl files.
             watcher.Filter = "*.glsl";
 
@@ -46,10 +42,10 @@ namespace Uriel
                 using (StreamReader sr = new StreamReader(eventArgs.FullPath))
                 {
                     // Read the stream to a string, and write the string to the console.
-                    string glsl = sr.ReadToEnd();
+                    string fileContent = sr.ReadToEnd();
                     ShaderStore.Shaders.Push(new ShaderInfo()
                     {
-                        Source = glsl,
+                        Source = fileContent,
                         SourceFileName = eventArgs.Name,
                         Changed = DateTime.UtcNow
                     });

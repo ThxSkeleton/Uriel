@@ -3,7 +3,7 @@
     public interface IShaderProgram
     {
         uint ProgramName { get; }
-
-        ShaderLocations StandardUniforms { get; }
+        UniformLocations UniformLocations { get; }
+        VertexLocations VertexLocations { get; }
     }
 }
