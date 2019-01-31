@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using Uriel.DataTypes;
+using Uriel.GLInteractions;
 using Uriel.ShaderTypes;
 using Uriel.Support;
 
@@ -20,6 +21,8 @@ namespace Uriel
         private FrameTracker FrameTracker;
         private ToolStripStatusLabel FpsLabel;
         private ToolStripStatusLabel U_timeLabel;
+
+        private RenderLoop renderLoop;
 
         private Panel LeftPanel;
         private ListBox ShaderSelector;
@@ -41,12 +44,12 @@ namespace Uriel
             InitializeComponent();
         }
 
-        private void SetFPS(float f)
+        private void UpdateFPSLabel(float f)
         {
             FpsLabel.Text = "FPS: " + f.ToString("0.00");
         }
 
-        private void SetUTime(double f)
+        private void UpdateTimeLabel(double f)
         {
             U_timeLabel.Text = "Time: " + f.ToString("0.0000");
         }
@@ -155,6 +158,8 @@ namespace Uriel
             this.Name = "Uriel SampleForm";
             this.Text = "Uriel";
             this.ResumeLayout(false);
+
+            this.renderLoop = new RenderLoop(this.configuration.Length, this.configuration.Height);
         }
 
         private void RefreshShaderSelector(object sender, EventArgs e)
@@ -168,7 +173,7 @@ namespace Uriel
         private void StatusStrip_Update()
         {
             StatusStrip.Invalidate();
-            SetFPS(this.FrameTracker.averageFramePerSecond);
+            UpdateFPSLabel(this.FrameTracker.averageFramePerSecond);
             StatusStrip.Refresh();
         }
 
@@ -348,56 +353,22 @@ namespace Uriel
 
             this.FrameTracker.StartFrame();
 
-            Gl.Viewport(0, 0, width, height);
-            Gl.Clear(ClearBufferMask.ColorBufferBit);
-
-            // Select the program for drawing
-            Gl.UseProgram(currentShader.Program.ProgramName);
-
             double time = (DateTime.UtcNow - StartTime).TotalSeconds;
 
-            SetUTime(time);
+            UpdateTimeLabel(time);
 
             Vertex2f resolution = new Vertex2f(configuration.Length, configuration.Height);
 
-            Gl.UseProgram(currentShader.Program.ProgramName);
-
-            SetUniforms(currentShader.Program.UniformLocations, time, resolution);
-
-            if (currentShader.CreationArguments.Type.UseTexture)
+            UniformValues uniforms = new UniformValues()
             {
-                Gl.BindTexture(TextureTarget.Texture2d, currentShader.TextureName);
-            }
+                Resolution = resolution,
+                Time = time
+            };
 
-            // Use the vertex array
-            Gl.BindVertexArray(currentShader.VertexArray.ArrayName);
-            GlErrorLogger.Check();
-            // Draw triangle
-            if (currentShader.CreationArguments.Type.UseIndexing)
-            {
-                Gl.DrawElements(PrimitiveType.Triangles, currentShader.VertexArray.Count, DrawElementsType.UnsignedInt, IntPtr.Zero);
-            }
-            else
-            {
-                Gl.DrawArrays(PrimitiveType.Triangles, 0, currentShader.VertexArray.Count);
-            }
-            GlErrorLogger.Check();
+            renderLoop.Render(currentShader, uniforms);
 
             this.FrameTracker.EndFrame();
             StatusStrip_Update();
-        }
-
-        private void SetUniforms(UniformLocations uniforms, double time, Vertex2f resolution)
-        {
-            if (LocationValidation.Enabled(uniforms.Location_iTime))
-            {
-                Gl.Uniform1f<float>(uniforms.Location_iTime, 1, (float)time);
-            }
-
-            if (LocationValidation.Enabled(uniforms.Location_iResolution))
-            {
-                Gl.Uniform2f(uniforms.Location_iResolution, 1, resolution);
-            }
         }
 
         protected override void Dispose(bool disposing)

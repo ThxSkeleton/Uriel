@@ -15,11 +15,6 @@ namespace Uriel
         public UniformLocations UniformLocations { get; private set; }
         public VertexLocations VertexLocations { get; private set; }
 
-        /// <summary>
-        /// These are used for validation only.
-        /// </summary>
-        private bool LinkedStatus;
-
         private readonly List<string> FragmentSource;
         private readonly List<string> VertexSource;
         private readonly FragmentShaderUniformType expectedUniforms;
@@ -52,9 +47,9 @@ namespace Uriel
 
                 Gl.GetProgram(ProgramName, ProgramProperty.LinkStatus, out linked);
 
-                this.LinkedStatus = linked != 0;
+                var LinkedStatus = linked != 0;
 
-                Validate();
+                Validate(LinkedStatus);
 
                 this.UniformLocations = new UniformLocations()
                 {
@@ -76,9 +71,9 @@ namespace Uriel
 
         }
 
-        private void Validate()
+        private void Validate(bool linked)
         {
-            if (!LinkedStatus)
+            if (!linked)
             {
                 const int logMaxLength = 1024;
 
