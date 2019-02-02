@@ -98,6 +98,7 @@
     <Compile Include="GLInteractions\PngTexture.cs" />
     <Compile Include="DataTypes\RawVertexData.cs" />
     <Compile Include="GLInteractions\RenderLoop.cs" />
+    <Compile Include="GLInteractions\ShaderBuilder.cs" />
     <Compile Include="GLInteractions\ShaderProgram.cs" />
     <Compile Include="DataTypes\ShaderTypes.cs" />
     <Compile Include="Support\BuiltInShaderSource.cs" />

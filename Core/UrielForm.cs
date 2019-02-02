@@ -23,11 +23,11 @@ namespace Uriel
         private ToolStripStatusLabel U_timeLabel;
 
         private RenderLoop renderLoop;
+        private ShaderBuilder builder;
+        private readonly ShaderFileWatcher watcher;
 
         private Panel LeftPanel;
         private ListBox ShaderSelector;
-
-        public ShaderBlob BadShader;
 
         public BindingList<ShaderBlob> ShaderBlobs = new BindingList<ShaderBlob>();
 
@@ -41,6 +41,8 @@ namespace Uriel
         public UrielForm(UrielConfiguration configuration)
         {
             this.configuration = configuration;
+            this.watcher = new ShaderFileWatcher(configuration.WatchDirectory);
+            watcher.Run();
             InitializeComponent();
         }
 
@@ -160,6 +162,7 @@ namespace Uriel
             this.ResumeLayout(false);
 
             this.renderLoop = new RenderLoop(this.configuration.Length, this.configuration.Height);
+            this.builder = new ShaderBuilder(ShaderZoo.BadShaderArguments());
         }
 
         private void RefreshShaderSelector(object sender, EventArgs e)
@@ -188,10 +191,7 @@ namespace Uriel
 
         private void RenderControl_Render(object sender, GlControlEventArgs e)
         {
-            // Common GL commands
-            Control senderControl = (Control)sender;
-
-            Render(senderControl.ClientSize.Width, senderControl.ClientSize.Height);
+            Loop();
         }
 
         private void RenderControl_ContextUpdate(object sender, GlControlEventArgs e)
@@ -214,18 +214,11 @@ namespace Uriel
                 Gl.Enable(EnableCap.Multisample);
             }
 
-            var BadShader_Args = new ShaderCreationArguments()
-            {
-                Type = ShaderBlobType.Time,
-                DisplayName = "BadShader",
-                FragmentShaderSource = new List<string>(BuiltInShaderSource.BadShader),
-            };
-
-            BadShader = BuildProgram(BadShader_Args);
+            watcher.LoadAll();
 
             foreach (var shaderBlob in ShaderZoo.BuildZoo())
             {
-                ShaderBlobs.Add(BuildProgram(shaderBlob));
+                ShaderBlobs.Add(builder.BuildProgram(shaderBlob));
             }
 
             GlErrorLogger.Check();
@@ -233,111 +226,18 @@ namespace Uriel
             StartTime = DateTime.UtcNow;
         }
 
-        private ShaderBlob BuildProgram(ShaderCreationArguments args)
-        {
-            try
-            {
-                PngTexture texture = null;
-
-                if (args.Type.UseTexture)
-                {
-                    texture = new PngTexture(args.TexturePath);
-                    texture.Load();
-                    texture.Create();
-                    GlErrorLogger.Check();
-
-                    // Do I even need this?
-                    Gl.BindTexture(TextureTarget.Texture2d, texture.TextureName);
-                    GlErrorLogger.Check();
-                }
-
-                var vertexSource = VertexShaderSource.VertexSourceLookup(args.Type.VertexFormat, args.Type.VertexShaderVersion);
-
-                var _Program = new ShaderProgram(args.FragmentShaderSource, vertexSource, args.Type.FragmentShaderUniformType, args.Type.VertexFormat);
-                GlErrorLogger.Check();
-
-                _Program.Link();
-                GlErrorLogger.Check();
-
-                IVertexArray _VertexArray = BuildVertexArray(_Program.VertexLocations, args); 
-
-                GlErrorLogger.Check();
-
-                return new ShaderBlob()
-                {
-                    DisplayName = args.DisplayName,
-                    CreationArguments = args,
-                    TreatAsGood = true,
-                    Program = _Program,
-                    VertexArray = _VertexArray,
-                    TextureName = !args.Type.UseTexture ? 0 : texture.TextureName,
-                };
-            }
-            catch (Exception e)
-            {
-                StaticLogger.Logger.ErrorFormat("{1} - Shader Error {0}", args.DisplayName, e.ToString());
-
-                return new ShaderBlob()
-                {
-                    DisplayName = args.DisplayName,
-                    CreationArguments = BadShader.CreationArguments,
-                    TreatAsGood = false,
-                    ErrorMessage = e.ToString(),
-                    Program = BadShader.Program,
-                    VertexArray = BadShader.VertexArray
-                };
-            }
-        }
-
-        private IVertexArray BuildVertexArray(VertexLocations vertexLocations, ShaderCreationArguments args)
-        {
-            if (!args.Type.UseIndexing)
-            {
-                return new VertexArray(vertexLocations, args.Type, RawVertexData.NonIndexed);
-            }
-            else
-            {
-                return new VertexArray(vertexLocations, args.Type, RawVertexData.Indexed);
-            }
-        }
-
         private void Destroy()
         {
 
         }
 
-        private void Render(int width, int height)
+        private void Loop()
         {
-            if (!ShaderStore.Shaders.IsEmpty)
+            var possibleNewShader = watcher.GetNew();
+            if (possibleNewShader != null)
             {
-                StaticLogger.Logger.Info("New Shader Detected.");
-
-                ShaderInfo newShader;
-                // don't bother checking success.
-                ShaderStore.Shaders.TryPop(out newShader);
-
-                StaticLogger.Logger.Info(newShader);
-
-                IEnumerable<string> shaderStringBase = newShader.Source.Trim().Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
-                IEnumerable<string> shaderStringPostPendNewlines = shaderStringBase.Select(x => x + "\n");
-
-                var shaderActual = ShaderToyConverter.TranslateShader(shaderStringPostPendNewlines.ToList());
-
-                var newShaderArgs = new ShaderCreationArguments()
-                {
-                    Type = ShaderBlobType.Standard,
-                    DisplayName = newShader.ConvenientName(),
-                    FragmentShaderSource = shaderActual,
-                };
-
-                var newBlob = BuildProgram(newShaderArgs);
-
-                ErrorBox.Text = newBlob.ErrorMessage;
-                ErrorBox.Refresh();
-
-                ShaderBlobs.Add(newBlob);
-
-                RefreshShaderSelector(null, null);
+                var newShader = this.builder.BuildProgram(possibleNewShader);
+                this.ShaderBlobs.Add(newShader);
             }
 
             ShaderBlob currentShader = (ShaderBlob)ShaderSelector.SelectedItem;

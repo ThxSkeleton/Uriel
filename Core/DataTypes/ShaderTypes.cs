@@ -170,6 +170,22 @@ namespace Uriel.ShaderTypes
         Version300Core
     }
 
+    public class ShaderVersionToString
+    {
+        public string ToString(this ShaderVersion versionEnum)
+        {
+            if (versionEnum == ShaderVersion.Version150Compatability)
+            {
+
+            }
+            else if (versionEnum == ShaderVersion.Version300Core)
+            {
+
+            }
+        }
+
+    }
+
     public enum FragmentShaderUniformType
     {
         None,

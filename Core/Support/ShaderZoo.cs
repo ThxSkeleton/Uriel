@@ -11,6 +11,17 @@ namespace Uriel.Support
 {
     public static class ShaderZoo
     {
+        public static ShaderCreationArguments BadShaderArguments()
+        {
+            return new ShaderCreationArguments()
+            {
+                Type = ShaderBlobType.Time,
+                DisplayName = "BadShader",
+                FragmentShaderSource = new List<string>(BuiltInShaderSource.BadShader),
+            };
+
+        }
+
         public static List<ShaderCreationArguments> BuildZoo()
         {
             var toReturn = new List<ShaderCreationArguments>();
