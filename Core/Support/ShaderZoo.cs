@@ -16,7 +16,7 @@ namespace Uriel.Support
             return new ShaderCreationArguments()
             {
                 Type = ShaderBlobType.Time,
-                DisplayName = "BadShader",
+                SimpleName = "BadShader",
                 FragmentShaderSource = new List<string>(BuiltInShaderSource.BadShader),
             };
 
@@ -29,56 +29,56 @@ namespace Uriel.Support
             var SimplestShader_Args = new ShaderCreationArguments()
             {
                 Type = ShaderBlobType.PlainVertexNoUniforms,
-                DisplayName = "SimplestShader",
+                SimpleName = "SimplestShader",
                 FragmentShaderSource = new List<string>(BuiltInShaderSource.SimpleShader),
             };
 
             var SimplestShader_WithTime_Args = new ShaderCreationArguments()
             {
                 Type = ShaderBlobType.Time,
-                DisplayName = "SimplestShader_WithTime",
+                SimpleName = "SimplestShader_WithTime",
                 FragmentShaderSource = new List<string>(BuiltInShaderSource.ShaderNoResolution),
             };
 
             var BaseShader_Args = new ShaderCreationArguments()
             {
                 Type = ShaderBlobType.Standard,
-                DisplayName = "BaseShader",
+                SimpleName = "BaseShader",
                 FragmentShaderSource = new List<string>(BuiltInShaderSource.BaseShader),
             };
 
             var BaseShader2_Args = new ShaderCreationArguments()
             {
                 Type = ShaderBlobType.Standard,
-                DisplayName = "BaseShader2",
+                SimpleName = "BaseShader2",
                 FragmentShaderSource = new List<string>(BuiltInShaderSource.BaseShader2),
             };
 
             var BaseShaderAlternate_Args = new ShaderCreationArguments()
             {
                 Type = ShaderBlobType.Standard,
-                DisplayName = "BaseShaderAlternate",
+                SimpleName = "BaseShaderAlternate",
                 FragmentShaderSource = new List<string>(BuiltInShaderSource.BaseShaderAlternate),
             };
 
             var ColorNoIndex_Args = new ShaderCreationArguments()
             {
                 Type = ShaderBlobType.Color_NoIndex,
-                DisplayName = "Color_NoIndex",
+                SimpleName = "Color_NoIndex",
                 FragmentShaderSource = new List<string>(BuiltInShaderSource.ColorTest),
             };
 
             var ColorIndex_Args = new ShaderCreationArguments()
             {
                 Type = ShaderBlobType.Color_WithIndex,
-                DisplayName = "Color_Index",
+                SimpleName = "Color_Index",
                 FragmentShaderSource = new List<string>(BuiltInShaderSource.ColorTest),
             };
 
             var ColorTest_Args = new ShaderCreationArguments()
             {
                 Type = ShaderBlobType.TextureStandard,
-                DisplayName = "TexTest",
+                SimpleName = "TexTest",
                 FragmentShaderSource = new List<string>(BuiltInShaderSource.TextureTest),
                 TexturePath = @"Z:\ShaderStore\MultiColorTest.png"
             };
@@ -86,7 +86,7 @@ namespace Uriel.Support
             var TexTest_Args = new ShaderCreationArguments()
             {
                 Type = ShaderBlobType.TextureStandard,
-                DisplayName = "TexTest",
+                SimpleName = "TexTest",
                 FragmentShaderSource = new List<string>(BuiltInShaderSource.TextureTest),
                 TexturePath = @"Z:\ShaderStore\ColorTest.png"
             };
@@ -94,7 +94,7 @@ namespace Uriel.Support
             var TexTest2_Args = new ShaderCreationArguments()
             {
                 Type = ShaderBlobType.TextureStandard,
-                DisplayName = "TexTest2",
+                SimpleName = "TexTest2",
                 FragmentShaderSource = new List<string>(BuiltInShaderSource.TextureTest),
                 TexturePath = @"Z:\ShaderStore\ColorTest2.png"
             };
@@ -102,7 +102,7 @@ namespace Uriel.Support
             var TexTest3_Args = new ShaderCreationArguments()
             {
                 Type = ShaderBlobType.TextureStandard,
-                DisplayName = "TexTest3",
+                SimpleName = "TexTest3",
                 FragmentShaderSource = new List<string>(BuiltInShaderSource.TextureTest),
                 TexturePath = @"Z:\ShaderStore\ColorTest3.png"
             };
@@ -110,7 +110,7 @@ namespace Uriel.Support
             var TexTest4_Args = new ShaderCreationArguments()
             {
                 Type = ShaderBlobType.TextureStandard,
-                DisplayName = "TexTest4",
+                SimpleName = "TexTest4",
                 FragmentShaderSource = new List<string>(BuiltInShaderSource.TextureTest),
                 TexturePath = @"Z:\ShaderStore\ColorTest4.png"
             };
@@ -118,7 +118,7 @@ namespace Uriel.Support
             var TexTest5_Args = new ShaderCreationArguments()
             {
                 Type = ShaderBlobType.TextureStandard,
-                DisplayName = "TexTest5",
+                SimpleName = "TexTest5",
                 FragmentShaderSource = new List<string>(BuiltInShaderSource.TextureTest),
                 TexturePath = @"Z:\ShaderStore\ColorTest5.png"
             };
@@ -126,7 +126,7 @@ namespace Uriel.Support
             var TexTestSkull_Args = new ShaderCreationArguments()
             {
                 Type = ShaderBlobType.TextureStandard,
-                DisplayName = "TexTestSkull",
+                SimpleName = "TexTestSkull",
                 FragmentShaderSource = new List<string>(BuiltInShaderSource.TextureTest),
                 TexturePath = @"Z:\ShaderStore\Mega-Skull.png"
             };
@@ -134,7 +134,7 @@ namespace Uriel.Support
             var TexTestSkull2_Args = new ShaderCreationArguments()
             {
                 Type = ShaderBlobType.TextureStandard,
-                DisplayName = "TexTestSkull2",
+                SimpleName = "TexTestSkull2",
                 FragmentShaderSource = new List<string>(BuiltInShaderSource.TextureTest),
                 TexturePath = @"Z:\ShaderStore\Mega-Skull2.png"
             };
@@ -142,7 +142,7 @@ namespace Uriel.Support
             var TexTestSkull3_Args = new ShaderCreationArguments()
             {
                 Type = ShaderBlobType.TextureStandard,
-                DisplayName = "TexTestSkull2",
+                SimpleName = "TexTestSkull2",
                 FragmentShaderSource = new List<string>(BuiltInShaderSource.TextureTest),
                 TexturePath = @"Z:\ShaderStore\Mega-Skull3.png"
             };

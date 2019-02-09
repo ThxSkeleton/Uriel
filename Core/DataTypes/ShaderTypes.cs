@@ -23,15 +23,41 @@ namespace Uriel.ShaderTypes
     {
         public ShaderBlobType Type { get; set; }
 
-        public String DisplayName { get; set; }
+        public String SimpleName { get; set; }
 
         public List<string> FragmentShaderSource { get; set; }
 
         public String TexturePath { get; set; }
+
+        public DateTime Changed { get; set; }
+
+        public string FileName { get; set; }
+
+        public string ConvenientName()
+        {
+            if (this.Type.ShaderSource == ShaderSource.FromFile_ShaderToy)
+            {
+                return String.Format("{0}-{1}", FileName, Changed.ToString());
+            }
+            else
+            {
+                return this.SimpleName;
+            }
+        }
+
+        public override string ToString()
+        {
+            return string.Join(",", FragmentShaderSource);
+        }
     }
 
+    /// <summary>
+    /// Type information for the Shader - this should be a "big enum" 
+    /// </summary>
     public class ShaderBlobType
     {
+        #region PredeterminedTypes
+
         public static ShaderBlobType PlainVertexNoUniforms
         {
             get
@@ -42,7 +68,7 @@ namespace Uriel.ShaderTypes
                     VertexFormat = VertexFormat.Plain,
                     VertexShaderVersion = ShaderVersion.Version150Compatability,
                     UseIndexing = false,
-                    FragmentShaderUniformType = FragmentShaderUniformType.None,
+                    Uniforms = UniformSet.None(),
                     FragmentShaderVersion = ShaderVersion.Version150Compatability
                 };
             }
@@ -58,12 +84,11 @@ namespace Uriel.ShaderTypes
                     VertexFormat = VertexFormat.Plain,
                     VertexShaderVersion = ShaderVersion.Version150Compatability,
                     UseIndexing = false,
-                    FragmentShaderUniformType = FragmentShaderUniformType.Time,
+                    Uniforms = UniformSet.Time(),
                     FragmentShaderVersion = ShaderVersion.Version150Compatability
                 };
             }
         }
-
 
         public static ShaderBlobType DimensionAndTime
         {
@@ -75,7 +100,7 @@ namespace Uriel.ShaderTypes
                     VertexFormat = VertexFormat.Plain,
                     VertexShaderVersion = ShaderVersion.Version150Compatability,
                     UseIndexing = false,
-                    FragmentShaderUniformType = FragmentShaderUniformType.DimensionAndTime,
+                    Uniforms = UniformSet.DimensionAndTime(),
                     FragmentShaderVersion = ShaderVersion.Version150Compatability
                 };
             }
@@ -91,7 +116,24 @@ namespace Uriel.ShaderTypes
                     VertexFormat = VertexFormat.Plain,
                     VertexShaderVersion = ShaderVersion.Version150Compatability,
                     UseIndexing = true,
-                    FragmentShaderUniformType = FragmentShaderUniformType.DimensionAndTime,
+                    Uniforms = UniformSet.DimensionAndTime(),
+                    FragmentShaderVersion = ShaderVersion.Version150Compatability
+                };
+            }
+        }
+
+        public static ShaderBlobType Standard_FromFile
+        {
+            get
+            {
+                return new ShaderBlobType()
+                {
+                    ShaderSource = ShaderSource.FromFile_ShaderToy,
+                    UseTexture = false,
+                    VertexFormat = VertexFormat.Plain,
+                    VertexShaderVersion = ShaderVersion.Version150Compatability,
+                    UseIndexing = true,
+                    Uniforms = UniformSet.ShaderToyStandard(),
                     FragmentShaderVersion = ShaderVersion.Version150Compatability
                 };
             }
@@ -107,7 +149,7 @@ namespace Uriel.ShaderTypes
                     VertexFormat = VertexFormat.WithColor,
                     VertexShaderVersion = ShaderVersion.Version150Compatability,
                     UseIndexing = false,
-                    FragmentShaderUniformType = FragmentShaderUniformType.Time,
+                    Uniforms = UniformSet.Time(),
                     FragmentShaderVersion = ShaderVersion.Version150Compatability
                 };
             }
@@ -123,7 +165,7 @@ namespace Uriel.ShaderTypes
                     VertexFormat = VertexFormat.WithColor,
                     VertexShaderVersion = ShaderVersion.Version150Compatability,
                     UseIndexing = true,
-                    FragmentShaderUniformType = FragmentShaderUniformType.Time,
+                    Uniforms = UniformSet.Time(),
                     FragmentShaderVersion = ShaderVersion.Version150Compatability
                 };
             }
@@ -139,11 +181,32 @@ namespace Uriel.ShaderTypes
                     VertexFormat = VertexFormat.WithTexture,
                     VertexShaderVersion = ShaderVersion.Version150Compatability,
                     UseIndexing = true,
-                    FragmentShaderUniformType = FragmentShaderUniformType.None,
+                    Uniforms = UniformSet.None(),
                     FragmentShaderVersion = ShaderVersion.Version150Compatability
                 };
             }
         }
+
+        public static ShaderBlobType Texture_FromFile
+        {
+            get
+            {
+                return new ShaderBlobType()
+                {
+                    ShaderSource = ShaderSource.FromFile_ShaderToy,
+                    UseTexture = true,
+                    VertexFormat = VertexFormat.Plain,
+                    VertexShaderVersion = ShaderVersion.Version150Compatability,
+                    UseIndexing = true,
+                    Uniforms = UniformSet.ShaderToyStandardPlusTexture(),
+                    FragmentShaderVersion = ShaderVersion.Version150Compatability
+                };
+            }
+        }
+
+        #endregion
+
+        public ShaderSource ShaderSource { get; set; }
 
         public bool UseTexture { get; private set; }
         public VertexFormat VertexFormat { get; private set; }
@@ -151,9 +214,18 @@ namespace Uriel.ShaderTypes
 
         public bool UseIndexing { get; private set; }
 
-        public FragmentShaderUniformType FragmentShaderUniformType { get; private set; }
+        public List<FragmentShaderUniformType> Uniforms { get; private set; }
 
         public ShaderVersion FragmentShaderVersion { get; private set; }
+
+
+    }
+
+    public enum ShaderSource
+    {
+        BuiltIn,
+        FromFile_ShaderToy,
+        FromFile_Other
     }
 
     public enum VertexFormat
@@ -170,17 +242,21 @@ namespace Uriel.ShaderTypes
         Version300Core
     }
 
-    public class ShaderVersionToString
+    public static class ShaderVersionToString
     {
-        public string ToString(this ShaderVersion versionEnum)
+        public static string ToShaderVersionString(this ShaderVersion versionEnum)
         {
             if (versionEnum == ShaderVersion.Version150Compatability)
             {
-
+                return "#version 150 compatibility\n";
             }
             else if (versionEnum == ShaderVersion.Version300Core)
             {
-
+                return "#version 300 core\n";
+            }
+            else
+            {
+                throw new InvalidOperationException("Unsupported Version.");
             }
         }
 
@@ -188,10 +264,56 @@ namespace Uriel.ShaderTypes
 
     public enum FragmentShaderUniformType
     {
-        None,
         Dimension,
         Time,
-        DimensionAndTime,
-        ShaderToy,
+        Mouse,
+        Texture,
     }
+
+    public static class UniformTypeToUniformDeclaration
+    {
+        public static readonly Dictionary<FragmentShaderUniformType, String> Definitions = new Dictionary<FragmentShaderUniformType, String>()
+        {
+            { FragmentShaderUniformType.Dimension, "uniform vec2 iResolution;\n" },
+            { FragmentShaderUniformType.Mouse, "uniform vec4 iMouse;\n" },
+            { FragmentShaderUniformType.Time,  "uniform float iTime;\n" },
+            { FragmentShaderUniformType.Texture, "uniform sampler2D iTexture;\n" }
+        };
+    }
+
+    public static class UniformSet {
+        
+        public static List<FragmentShaderUniformType> None()
+        {
+            return new List<FragmentShaderUniformType>();
+        }
+
+        public static List<FragmentShaderUniformType> Time()
+        {
+            return new List<FragmentShaderUniformType>() { FragmentShaderUniformType.Time };
+        }
+
+        public static List<FragmentShaderUniformType> Dimension()
+        {
+            return new List<FragmentShaderUniformType>() { FragmentShaderUniformType.Dimension };
+        }
+
+        public static List<FragmentShaderUniformType> DimensionAndTime()
+        {
+            return new List<FragmentShaderUniformType>() { FragmentShaderUniformType.Dimension, FragmentShaderUniformType.Time };
+        }
+
+        public static List<FragmentShaderUniformType> ShaderToyStandard()
+        {
+            return new List<FragmentShaderUniformType>() { FragmentShaderUniformType.Dimension, FragmentShaderUniformType.Time, FragmentShaderUniformType.Mouse };
+        }
+
+        public static List<FragmentShaderUniformType> ShaderToyStandardPlusTexture()
+        {
+            return new List<FragmentShaderUniformType>() { FragmentShaderUniformType.Dimension, FragmentShaderUniformType.Time, FragmentShaderUniformType.Mouse, FragmentShaderUniformType.Texture };
+        }
+
+    }
+
+
 }

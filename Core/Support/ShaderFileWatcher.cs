@@ -60,16 +60,24 @@ namespace Uriel
         {
             try
             {
-                using (StreamReader sr = new StreamReader(fullPath))
+                StaticLogger.Logger.DebugFormat("Opening Filestream for {0}", fullPath);
+
+                FileStream fileStream = new FileStream(fullPath, FileMode.Open, FileAccess.Read);
+
+                StaticLogger.Logger.DebugFormat("Successfully opened Filestream for {0}", fullPath);
+
+                using (StreamReader sr = new StreamReader(fileStream))
                 {
                     // Read the stream to a string, and write the string to the console.
                     string fileContent = sr.ReadToEnd();
-                    ShaderStore.Shaders.Push(new ShaderInfo()
-                    {
-                        Source = fileContent,
-                        SourceFileName = fullPath,
-                        Changed = DateTime.UtcNow
-                    });
+
+                    List<string> shaderLines = fileContent.Trim().Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None).Select(x => x + "\n").ToList();
+
+                    StaticLogger.Logger.DebugFormat("File {0} has {1} lines.", fullPath, shaderLines.Count);
+
+                    var translatedShader = ModifyLines.TranslateShader(shaderLines, fullPath, DateTime.UtcNow);
+
+                    ShaderStore.Shaders.Push(translatedShader);
                 }
             }
             catch (Exception ex)
@@ -85,23 +93,13 @@ namespace Uriel
             {
                 StaticLogger.Logger.Info("New Shader Detected.");
 
-                ShaderInfo newShader;
+                ShaderCreationArguments newShader;
                 // don't bother checking success.
                 ShaderStore.Shaders.TryPop(out newShader);
 
                 StaticLogger.Logger.Info(newShader);
 
-                IEnumerable<string> shaderStringBase = newShader.Source.Trim().Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
-                IEnumerable<string> shaderStringPostPendNewlines = shaderStringBase.Select(x => x + "\n");
-
-                var shaderStringActual = ShaderToyConverter.TranslateShader(shaderStringPostPendNewlines.ToList());
-
-                return new ShaderCreationArguments()
-                {
-                    Type = ShaderBlobType.Standard,
-                    DisplayName = newShader.ConvenientName(),
-                    FragmentShaderSource = shaderStringActual,
-                };
+                return newShader;
             }
             else
             {
@@ -113,22 +111,7 @@ namespace Uriel
 
     public static class ShaderStore
     {
-        public static ConcurrentStack<ShaderInfo> Shaders = new ConcurrentStack<ShaderInfo>();
-    }
-
-    public class ShaderInfo
-    {
-        public string Source { get; set; }
-
-        public string SourceFileName { get; set; }
-
-        public DateTime Changed { get; set; }
-
-        public string ConvenientName()
-        {
-            return String.Format("{0}-{1}", SourceFileName, Changed.ToString());
-        }
-
+        public static ConcurrentStack<ShaderCreationArguments> Shaders = new ConcurrentStack<ShaderCreationArguments>();
     }
 
 }

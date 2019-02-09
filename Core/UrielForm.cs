@@ -233,14 +233,18 @@ namespace Uriel
 
         private void Loop()
         {
+            ShaderBlob currentShader;
+
             var possibleNewShader = watcher.GetNew();
             if (possibleNewShader != null)
             {
                 var newShader = this.builder.BuildProgram(possibleNewShader);
                 this.ShaderBlobs.Add(newShader);
+                ShaderSelector.SelectedIndex = ShaderSelector.Items.Count - 1;
             }
 
-            ShaderBlob currentShader = (ShaderBlob)ShaderSelector.SelectedItem;
+            currentShader = (ShaderBlob)ShaderSelector.SelectedItem;
+
 
             if (currentShader != Previous)
             {

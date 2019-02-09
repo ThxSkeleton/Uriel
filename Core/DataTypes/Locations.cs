@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Uriel.ShaderTypes;
 
 namespace Uriel
@@ -67,33 +68,42 @@ namespace Uriel
 
     public class UniformLocations
     {
+        public int Location_iMouse { get; set; }
+
         public int Location_iTime { get; set; }
 
         public int Location_iResolution { get; set; }
 
-        public void ValidateAllPresent(FragmentShaderUniformType expectedUniforms)
-        {
-            if (expectedUniforms == FragmentShaderUniformType.None)
-            {
+        public int Location_iTexture { get; set; }
 
-            }
-            else if (expectedUniforms == FragmentShaderUniformType.Dimension)
+        public void ValidateAllPresent(List<FragmentShaderUniformType> expectedUniforms)
+        {
+            foreach(var uniform in expectedUniforms)
             {
-                LocationValidation.ValidateSingle(Location_iResolution, nameof(Location_iResolution), true);
-            } 
-            else if (expectedUniforms == FragmentShaderUniformType.Time)
-            {
-                LocationValidation.ValidateSingle(Location_iTime, nameof(Location_iTime), true);
-            }
-            else if (expectedUniforms == FragmentShaderUniformType.DimensionAndTime)
-            {
-                LocationValidation.ValidateSingle(Location_iResolution, nameof(Location_iResolution), true);
-                LocationValidation.ValidateSingle(Location_iTime, nameof(Location_iTime), true);
-            }
-            else
-            {
-                throw new InvalidOperationException(expectedUniforms + " Uniforms not supported");
+                ValidateSingle(uniform);
             }
         }
+
+        private void ValidateSingle(FragmentShaderUniformType uniform)
+        {
+            if (uniform == FragmentShaderUniformType.Dimension)
+            {
+                LocationValidation.ValidateSingle(Location_iResolution, nameof(Location_iResolution), true);
+            }
+            else if (uniform == FragmentShaderUniformType.Time)
+            {
+                LocationValidation.ValidateSingle(Location_iTime, nameof(Location_iTime), true);
+            }
+            else if (uniform == FragmentShaderUniformType.Mouse)
+            {
+                LocationValidation.ValidateSingle(Location_iMouse, nameof(Location_iMouse), true);
+            }
+            else if (uniform == FragmentShaderUniformType.Texture)
+            {
+                LocationValidation.ValidateSingle(Location_iTexture, nameof(Location_iTexture), true);
+            }
+
+        }
+
     }
 }

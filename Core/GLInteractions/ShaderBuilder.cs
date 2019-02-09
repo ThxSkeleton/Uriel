@@ -47,7 +47,7 @@ namespace Uriel.GLInteractions
 
                 var vertexSource = VertexShaderSource.VertexSourceLookup(args.Type.VertexFormat, args.Type.VertexShaderVersion);
 
-                var _Program = new ShaderProgram(args.FragmentShaderSource, vertexSource, args.Type.FragmentShaderUniformType, args.Type.VertexFormat);
+                var _Program = new ShaderProgram(args.FragmentShaderSource, vertexSource, args.Type.Uniforms, args.Type.VertexFormat);
                 GlErrorLogger.Check();
 
                 _Program.Link();
@@ -59,7 +59,7 @@ namespace Uriel.GLInteractions
 
                 return new ShaderBlob()
                 {
-                    DisplayName = args.DisplayName,
+                    DisplayName = args.ConvenientName(),
                     CreationArguments = args,
                     TreatAsGood = true,
                     Program = _Program,
@@ -69,7 +69,7 @@ namespace Uriel.GLInteractions
             }
             catch (Exception e)
             {
-                StaticLogger.Logger.ErrorFormat("{1} - Shader Error {0}", args.DisplayName, e.ToString());
+                StaticLogger.Logger.ErrorFormat("{1} - Shader Error {0}", args.SimpleName, e.ToString());
 
                 if (BadShader == null)
                 {
@@ -78,7 +78,7 @@ namespace Uriel.GLInteractions
 
                 return new ShaderBlob()
                 {
-                    DisplayName = args.DisplayName,
+                    DisplayName = args.ConvenientName(),
                     CreationArguments = BadShader.CreationArguments,
                     TreatAsGood = false,
                     ErrorMessage = e.ToString(),

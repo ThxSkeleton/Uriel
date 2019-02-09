@@ -79,9 +79,9 @@ namespace Uriel
         public static string[] TextureTest = {
             "#version 150 compatibility\n",
             "in vec2 fTexCoord;\n",
-            "uniform sampler2D myTextureSampler;\n",
+            "uniform sampler2D iTexture;\n",
             "void main() {\n",
-            "    vec3 col = texture2D(myTextureSampler, fTexCoord).xyz;\n",
+            "    vec3 col = texture2D(iTexture, fTexCoord).xyz;\n",
             "    gl_FragColor = vec4(col, 0);\n",
             "}\n"
         };
