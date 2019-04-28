@@ -13,31 +13,34 @@ namespace Uriel
     {
         private const string glslPattern = "*.glsl";
 
-        private string rootDirectory;
+        private List<string> rootDirectories;
 
-        public ShaderFileWatcher(string rootDirectory)
+        public ShaderFileWatcher(List<string> directories)
         {
-            this.rootDirectory = rootDirectory;
+            this.rootDirectories = directories;
         }
 
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
         public void Run()
         {
-            // Create a new FileSystemWatcher and set its properties.
-            FileSystemWatcher watcher = new FileSystemWatcher();
-            watcher.Path = this.rootDirectory;
+            foreach (var directory in rootDirectories)
+            {
+                // Create a new FileSystemWatcher and set its properties.
+                FileSystemWatcher watcher = new FileSystemWatcher();
+                watcher.Path = directory;
 
-            watcher.NotifyFilter = NotifyFilters.LastWrite;
+                watcher.NotifyFilter = NotifyFilters.LastWrite;
 
-            // Only watch glsl files.
-            watcher.Filter = glslPattern;
+                // Only watch glsl files.
+                watcher.Filter = glslPattern;
 
-            // Add event handlers.
-            watcher.Changed += new FileSystemEventHandler(OnChanged);
-            watcher.Created += new FileSystemEventHandler(OnChanged);
+                // Add event handlers.
+                watcher.Changed += new FileSystemEventHandler(OnChanged);
+                watcher.Created += new FileSystemEventHandler(OnChanged);
 
-            // Begin watching.
-            watcher.EnableRaisingEvents = true;
+                // Begin watching.
+                watcher.EnableRaisingEvents = true;
+            }
         }
 
         // Define the event handlers.
@@ -48,11 +51,16 @@ namespace Uriel
 
         public void LoadAll()
         {
-            var allFiles = Directory.EnumerateFiles(rootDirectory, glslPattern);
-            
-            foreach(var file in allFiles)
+            foreach (var directory in rootDirectories)
             {
-                LoadFile(file);
+                var allFiles = Directory.EnumerateFiles(directory, glslPattern);
+
+                StaticLogger.Logger.DebugFormat("{0} has {1} files matching the pattern.", directory, allFiles.Count());
+
+                foreach (var file in allFiles)
+                {
+                    LoadFile(file);
+                }
             }
         }
 

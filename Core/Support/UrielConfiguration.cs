@@ -1,4 +1,6 @@
-﻿namespace Uriel
+﻿using System.Collections.Generic;
+
+namespace Uriel
 {
     public class UrielConfiguration
     {
@@ -10,6 +12,6 @@
 
         public bool LoggingEnabled { get; set; }
 
-        public string WatchDirectory { get; set; }
+        public List<string> WatchDirectory { get; set; }
     }
 }

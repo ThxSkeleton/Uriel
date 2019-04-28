@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 using System.Windows.Forms;
 
 using Khronos;
@@ -20,7 +23,7 @@ namespace Uriel
                 LockSize = true,
                 LoggingEnabled = true,
 
-                WatchDirectory = @"Z:\ShaderStore\"
+                WatchDirectory = new List<string>() { @"Z:\ShaderStore\", (Directory.GetParent(Assembly.GetExecutingAssembly().Location).FullName) + "\\ExampleShaders" }
             };
 
             StaticLogger.Create(config.LoggingEnabled);
