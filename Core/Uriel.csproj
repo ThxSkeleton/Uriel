@@ -101,6 +101,7 @@
     <Compile Include="GLInteractions\ShaderBuilder.cs" />
     <Compile Include="GLInteractions\ShaderProgram.cs" />
     <Compile Include="DataTypes\ShaderTypes.cs" />
+    <Compile Include="KeyPress\KeyPressListener.cs" />
     <Compile Include="Support\BuiltInShaderSource.cs" />
     <Compile Include="GLInteractions\GlBuffer.cs" />
     <Compile Include="GLInteractions\ShaderObject.cs" />
@@ -170,6 +171,7 @@
       <HintPath>$(Log4Net)\log4net.dll</HintPath>
     </Reference>
   </ItemGroup>
+  <ItemGroup />
   <!-- TODO - The OpenGL Nuget is currently outdated compared to the sample code, which Uriel is based on. -->
   <!-- Until new Nuget is uploaded, switch to the 'full build' approach. -->
   <!-- -->

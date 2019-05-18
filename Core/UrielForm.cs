@@ -6,6 +6,7 @@ using System.Linq;
 using System.Windows.Forms;
 using Uriel.DataTypes;
 using Uriel.GLInteractions;
+using Uriel.KeyPress;
 using Uriel.ShaderTypes;
 using Uriel.Support;
 
@@ -17,8 +18,10 @@ namespace Uriel
         private StatusStrip StatusStrip;
         private readonly UrielConfiguration configuration;
         private FrameTracker FrameTracker;
+
         private ToolStripStatusLabel FpsLabel;
         private ToolStripStatusLabel U_timeLabel;
+        private ToolStripStatusLabel KeyState;
 
         private RenderLoop renderLoop;
         private ShaderBuilder builder;
@@ -28,6 +31,10 @@ namespace Uriel
         private ListBox ShaderSelector;
 
         public BindingList<ShaderBlob> ShaderBlobs = new BindingList<ShaderBlob>();
+
+        public KeyPressListener listener = new KeyPressListener();
+        public TotalKeyState tks = new TotalKeyState();
+        public KeyInterpreter ki = new KeyInterpreter();
 
         public ShaderBlob Previous;
         private TextBox ErrorBox;
@@ -54,6 +61,11 @@ namespace Uriel
             U_timeLabel.Text = "Time: " + f.ToString("0.0000");
         }
 
+        private void UpdateKeyStateLabel(TotalKeyState tks)
+        {
+            KeyState.Text = string.Format("TKS: [{0},{1},{2}] [{3}, {4}, {5}]", tks.Position.x, tks.Position.y, tks.Position.z, tks.Movement.x, tks.Movement.y, tks.Movement.z);
+        }
+
         private void InitializeComponent()
         {
             this.SuspendLayout();
@@ -76,6 +88,9 @@ namespace Uriel
             RenderControl.StencilBits = ((uint)(0u));
             RenderControl.TabIndex = 0;
 
+            RenderControl.KeyDown += listener.KeyDown;
+            RenderControl.KeyUp += listener.KeyUp;
+
             // Label
 
             this.StatusStrip = new StatusStrip();
@@ -86,11 +101,14 @@ namespace Uriel
             StatusStrip.SizingGrip = false;
             FpsLabel = new System.Windows.Forms.ToolStripStatusLabel();
             U_timeLabel = new System.Windows.Forms.ToolStripStatusLabel();
+            KeyState = new System.Windows.Forms.ToolStripStatusLabel();
 
             StatusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
                 FpsLabel,
                 new ToolStripSeparator(),
-                U_timeLabel
+                U_timeLabel,
+                new ToolStripSeparator(),
+                KeyState
             });
 
             FpsLabel.Name = "fpsLabel";
@@ -100,6 +118,10 @@ namespace Uriel
             U_timeLabel.Name = "u_timeLabel";
             U_timeLabel.Size = new System.Drawing.Size(109, 17);
             U_timeLabel.Text = "---";
+
+            KeyState.Name = "KeyState";
+            KeyState.Size = new System.Drawing.Size(109, 17);
+            KeyState.Text = "---";
 
             // ListBar
 
@@ -155,7 +177,7 @@ namespace Uriel
             this.Controls.Add(this.RenderControl);
             this.Controls.Add(this.StatusStrip);
             this.Controls.Add(this.LeftPanel);
-            this.Name = "Uriel SampleForm";
+            this.Name = "Uriel";
             this.Text = "Uriel";
             this.ResumeLayout(false);
 
@@ -258,6 +280,7 @@ namespace Uriel
             double time = (DateTime.UtcNow - StartTime).TotalSeconds;
 
             UpdateTimeLabel(time);
+            UpdateKeys();
 
             Vertex2f resolution = new Vertex2f(configuration.Length, configuration.Height);
 
@@ -271,6 +294,12 @@ namespace Uriel
 
             this.FrameTracker.EndFrame();
             StatusStrip_Update();
+        }
+
+        private void UpdateKeys()
+        {
+            this.tks = this.ki.Update(this.tks, this.listener.CurrentKeys);
+            this.UpdateKeyStateLabel(this.tks);
         }
 
         protected override void Dispose(bool disposing)

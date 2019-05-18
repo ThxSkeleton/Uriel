@@ -76,6 +76,9 @@ namespace Uriel
 
         public int Location_iTexture { get; set; }
 
+        public int Location_iLocation { get; set; }
+
+
         public void ValidateAllPresent(List<FragmentShaderUniformType> expectedUniforms)
         {
             foreach(var uniform in expectedUniforms)
