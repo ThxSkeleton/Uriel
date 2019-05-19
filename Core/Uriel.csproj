@@ -78,9 +78,25 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="OpenGL.Net, Version=0.8.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OpenGL.Net.0.8.4\lib\net461\OpenGL.Net.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenGL.Net.Math, Version=0.8.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OpenGL.Net.Math.0.8.4\lib\net461\OpenGL.Net.Math.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenGL.Net.WinForms, Version=0.8.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OpenGL.Net.WinForms.0.8.4\lib\net461\OpenGL.Net.WinForms.dll</HintPath>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Numerics.Vectors.4.3.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.3.0\lib\netstandard1.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -142,6 +158,7 @@
     <None Include="Log4net.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -153,18 +170,14 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Dependencies\OpenGL.Net\OpenGL.Net.Math_net461.csproj">
+    <!--<ProjectReference Include="..\Dependencies\OpenGL.Net\OpenGL.Net.Math_net461.csproj">
       <Project>{05DFBC0C-AFBC-4ED0-BF43-80D7BB4E8DFD}</Project>
       <Name>OpenGL.Net.Math_net461</Name>
     </ProjectReference>
     <ProjectReference Include="..\Dependencies\OpenGL.Net.WinForms\OpenGL.Net.WinForms_net461.csproj">
       <Project>{1DA7D767-B83A-416E-A235-2EBE0FBE1769}</Project>
       <Name>OpenGL.Net.WinForms_net461</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Dependencies\OpenGL.Net\OpenGL.Net_net461.csproj">
-      <Project>{9E3018F3-770E-4CFD-87D0-BAEE66E9FE8F}</Project>
-      <Name>OpenGL.Net_net461</Name>
-    </ProjectReference>
+    </ProjectReference> -->
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Log4Net">
