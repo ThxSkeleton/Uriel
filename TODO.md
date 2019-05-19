@@ -15,17 +15,20 @@
 * Moving between Shaders resets smoothly
 * Load Shader by watching directory
 
-## Uriel v0.77: Shader Loading from File Dialog
+## Uriel v0.8: Texture Support
+* Done
+
+## Uriel v0.87: Shader Loading from File Dialog
 * Load Shader from file via dialog
 * Shader Stack with buttons
 * Shader Compilation Error Message Popup
 
-## Uriel v0.79: Visual Studio "Plugin" Mode
+## Uriel v0.88: Uriel Shader Directive 
+* flesh out the syntax
+
+## Uriel v0.89: Visual Studio "Plugin" Mode
 * Not actually a Plugin
 * Test out workflow and tweak.
-
-## Uriel v0.8: Texture Support
-* Need more research to even decide on steps for this
 
 ## Uriel v0.9: Refactor and Cleanup
 * Refactor - make it Data Driven
@@ -41,11 +44,12 @@
 
 ## Optimization
 * Learn how milisecond level timing is handled 
-* Log4Net, with appropriate settings to be able to handle per-frame log statements
+* ~~Log4Net, with appropriate settings to be able to handle per-frame log statements~~ Done
 * Attempt FPS limiter
-* Expectation: 90 FPS for Small Window
-* Expectation: 60 FPS for Giant Window
+* ~~Expectation: 90 FPS for Small Window~~ - Done
+* ~~Expectation: 60 FPS for Giant Window~~ - Done
 * Profile GC - is it even an issue?
+** Not Yet - 5/19/2019
 
 ## Build System
 * CI framework
