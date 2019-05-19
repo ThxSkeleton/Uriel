@@ -59,6 +59,16 @@ namespace Uriel.GLInteractions
             {
                 Gl.Uniform2f(uniformsLocations.Location_iResolution, 1, uniformsValues.Resolution);
             }
+
+            if (LocationValidation.Enabled(uniformsLocations.Location_iCursorPosition))
+            {
+                Gl.Uniform3f(uniformsLocations.Location_iCursorPosition, 1, uniformsValues.CursorPosition);
+            }
+
+            if (LocationValidation.Enabled(uniformsLocations.Location_iCursorMovement))
+            {
+                Gl.Uniform3f(uniformsLocations.Location_iCursorMovement, 1, uniformsValues.CursorMovement);
+            }
         }
     }
 }

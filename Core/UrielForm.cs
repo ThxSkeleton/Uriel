@@ -280,14 +280,21 @@ namespace Uriel
             double time = (DateTime.UtcNow - StartTime).TotalSeconds;
 
             UpdateTimeLabel(time);
-            UpdateKeys();
+
+            if (currentShader.CreationArguments.Type.Uniforms.Contains(FragmentShaderUniformType.CursorPosition) ||
+                currentShader.CreationArguments.Type.Uniforms.Contains(FragmentShaderUniformType.CursorMovement))
+            {
+                UpdateKeys();
+            }
 
             Vertex2f resolution = new Vertex2f(configuration.Length, configuration.Height);
 
             UniformValues uniforms = new UniformValues()
             {
                 Resolution = resolution,
-                Time = time
+                Time = time,
+                CursorMovement = this.tks.Movement,
+                CursorPosition = this.tks.Position
             };
 
             renderLoop.Render(currentShader, uniforms);

@@ -42,7 +42,10 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
 	// both x and y now have range 0-1
 	vec2 uv2 = 2 * (uv - vec2(.5, .5));
 	
-	uv2 = scaleOnTarget(uv2, 0.005 , vec2(-0.7463, 0.1101));
-	vec3 color = vec3(diverges(uv2.xy))+ .1f + iTime*vec3(.001, .001, .001);
+	float zoom = pow(0.5, max(0f, iCursorPosition.z/50));
+	vec2 window = zoom * iCursorPosition.xy * .03;
+	
+	uv2 = scaleOnTarget(uv2, zoom, window);
+	vec3 color = vec3(diverges(uv2.xy))+ .1f;
 	fragColor = vec4(color, 1.0);
 }

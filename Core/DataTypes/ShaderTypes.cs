@@ -35,7 +35,7 @@ namespace Uriel.ShaderTypes
 
         public string ConvenientName()
         {
-            if (this.Type.ShaderSource == ShaderSource.FromFile_ShaderToy)
+            if (this.Type.ShaderSource == ShaderSource.FromFile_ShaderToy || this.Type.ShaderSource == ShaderSource.FromFile_Other)
             {
                 return String.Format("{0}-{1}", FileName, Changed.ToString());
             }
@@ -47,7 +47,7 @@ namespace Uriel.ShaderTypes
 
         public override string ToString()
         {
-            return string.Join(",", FragmentShaderSource);
+            return ConvenientName(); // string.Join(",", FragmentShaderSource);
         }
     }
 
@@ -204,6 +204,23 @@ namespace Uriel.ShaderTypes
             }
         }
 
+        public static ShaderBlobType UrielStandard_FromFile
+        {
+            get
+            {
+                return new ShaderBlobType()
+                {
+                    ShaderSource = ShaderSource.FromFile_Other,
+                    UseTexture = false,
+                    VertexFormat = VertexFormat.Plain,
+                    VertexShaderVersion = ShaderVersion.Version150Compatability,
+                    UseIndexing = true,
+                    Uniforms = UniformSet.UrielStandard(),
+                    FragmentShaderVersion = ShaderVersion.Version150Compatability
+                };
+            }
+        }
+
         #endregion
 
         public ShaderSource ShaderSource { get; set; }
@@ -268,6 +285,8 @@ namespace Uriel.ShaderTypes
         Time,
         Mouse,
         Texture,
+        CursorPosition,
+        CursorMovement
     }
 
     public static class UniformTypeToUniformDeclaration
@@ -277,7 +296,9 @@ namespace Uriel.ShaderTypes
             { FragmentShaderUniformType.Dimension, "uniform vec2 iResolution;\n" },
             { FragmentShaderUniformType.Mouse, "uniform vec4 iMouse;\n" },
             { FragmentShaderUniformType.Time,  "uniform float iTime;\n" },
-            { FragmentShaderUniformType.Texture, "uniform sampler2D iTexture;\n" }
+            { FragmentShaderUniformType.Texture, "uniform sampler2D iTexture;\n" },
+            { FragmentShaderUniformType.CursorPosition, "uniform vec3 iCursorPosition;\n" },
+            { FragmentShaderUniformType.CursorMovement, "uniform vec3 iCursorMovement;\n" }
         };
     }
 
@@ -311,6 +332,11 @@ namespace Uriel.ShaderTypes
         public static List<FragmentShaderUniformType> ShaderToyStandardPlusTexture()
         {
             return new List<FragmentShaderUniformType>() { FragmentShaderUniformType.Dimension, FragmentShaderUniformType.Time, FragmentShaderUniformType.Mouse, FragmentShaderUniformType.Texture };
+        }
+
+        public static List<FragmentShaderUniformType> UrielStandard()
+        {
+            return new List<FragmentShaderUniformType>() { FragmentShaderUniformType.Dimension, FragmentShaderUniformType.Time, FragmentShaderUniformType.CursorPosition, FragmentShaderUniformType.CursorMovement };
         }
 
     }

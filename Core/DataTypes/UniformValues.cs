@@ -12,5 +12,9 @@ namespace Uriel.DataTypes
         public double Time { get; set; }
 
         public Vertex2f Resolution { get; set; }
+
+        public Vertex3f CursorPosition { get; set; }
+
+        public Vertex3f CursorMovement { get; set; }
     }
 }

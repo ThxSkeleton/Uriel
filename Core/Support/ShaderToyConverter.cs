@@ -38,11 +38,15 @@ namespace Uriel.Support
 
             if (!urielInterpretable)
             {
-                var alteredLines = ModifyLinesForShaderToy(inputShaderLines, ShaderBlobType.Standard_FromFile.FragmentShaderVersion, ShaderBlobType.Standard_FromFile.Uniforms);
+                ShaderBlobType defaultType = ShaderBlobType.UrielStandard_FromFile;
+
+                StaticLogger.Logger.DebugFormat("Shader is not Uriel Interpretable - proceeding with conversion to default ShaderBlobType {0}", defaultType);
+
+                var alteredLines = ModifyLinesForShaderToy(inputShaderLines, defaultType.FragmentShaderVersion, defaultType.Uniforms);
 
                 return new ShaderCreationArguments()
                 {
-                    Type = ShaderBlobType.Standard_FromFile,
+                    Type = defaultType,
                     SimpleName = "FromFile",
                     FragmentShaderSource = alteredLines,
                     TexturePath = string.Empty,
@@ -52,7 +56,12 @@ namespace Uriel.Support
             }
             else
             {
-                var alteredLines = ModifyLinesForShaderToy(inputShaderLines, ShaderBlobType.Texture_FromFile.FragmentShaderVersion, ShaderBlobType.Texture_FromFile.Uniforms);
+                // TODO: the type should eventually come from the uriel directive
+                var defaultnonInterpretableType = ShaderBlobType.Texture_FromFile;
+
+                StaticLogger.Logger.DebugFormat("Shader is Uriel Interpretable - proceeding with conversion to default ShaderBlobType {0}", defaultnonInterpretableType);
+
+                var alteredLines = ModifyLinesForShaderToy(inputShaderLines, defaultnonInterpretableType.FragmentShaderVersion, defaultnonInterpretableType.Uniforms);
 
                 var urielFields = firstLine.Split(new char[] { UrielShaderDirective_Separator }).ToList();
 

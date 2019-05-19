@@ -76,7 +76,9 @@ namespace Uriel
 
         public int Location_iTexture { get; set; }
 
-        public int Location_iLocation { get; set; }
+        public int Location_iCursorPosition { get; set; }
+    
+        public int Location_iCursorMovement { get; set; }
 
 
         public void ValidateAllPresent(List<FragmentShaderUniformType> expectedUniforms)
@@ -91,21 +93,28 @@ namespace Uriel
         {
             if (uniform == FragmentShaderUniformType.Dimension)
             {
-                LocationValidation.ValidateSingle(Location_iResolution, nameof(Location_iResolution), true);
+                LocationValidation.ValidateSingle(Location_iResolution, nameof(Location_iResolution), false);
             }
             else if (uniform == FragmentShaderUniformType.Time)
             {
-                LocationValidation.ValidateSingle(Location_iTime, nameof(Location_iTime), true);
+                LocationValidation.ValidateSingle(Location_iTime, nameof(Location_iTime), false);
             }
             else if (uniform == FragmentShaderUniformType.Mouse)
             {
-                LocationValidation.ValidateSingle(Location_iMouse, nameof(Location_iMouse), true);
+                LocationValidation.ValidateSingle(Location_iMouse, nameof(Location_iMouse), false);
             }
             else if (uniform == FragmentShaderUniformType.Texture)
             {
-                LocationValidation.ValidateSingle(Location_iTexture, nameof(Location_iTexture), true);
+                LocationValidation.ValidateSingle(Location_iTexture, nameof(Location_iTexture), false);
             }
-
+            else if (uniform == FragmentShaderUniformType.CursorPosition)
+            {
+                LocationValidation.ValidateSingle(Location_iCursorPosition, nameof(Location_iCursorPosition), false);
+            }
+            else if (uniform == FragmentShaderUniformType.CursorMovement)
+            {
+                LocationValidation.ValidateSingle(Location_iCursorMovement, nameof(Location_iCursorMovement), false);
+            }
         }
 
     }

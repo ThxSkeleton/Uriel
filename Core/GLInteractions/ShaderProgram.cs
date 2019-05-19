@@ -55,6 +55,8 @@ namespace Uriel
                 {
                     Location_iTime = Gl.GetUniformLocation(ProgramName, "iTime"),
                     Location_iResolution = Gl.GetUniformLocation(ProgramName, "iResolution"),
+                    Location_iCursorPosition = Gl.GetUniformLocation(ProgramName, "iCursorPosition"),
+                    Location_iCursorMovement = Gl.GetUniformLocation(ProgramName, "iCursorMovement"),
                 };
 
                 this.UniformLocations.ValidateAllPresent(expectedUniforms);

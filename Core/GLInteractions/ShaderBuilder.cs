@@ -31,6 +31,8 @@ namespace Uriel.GLInteractions
         {
             try
             {
+                StaticLogger.Logger.DebugFormat("Starting Creation of {0}", args.ConvenientName());
+
                 PngTexture texture = null;
 
                 if (args.Type.UseTexture)
