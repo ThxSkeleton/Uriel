@@ -3,13 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Uriel.DataTypes;
 using Uriel.ShaderTypes;
 
 namespace Uriel.Support
 {
     public class ModifyLines
     {
-
+        // "Shadertoy-style" glsl shaders have a signature of 
+        // ' void mainImage( out vec4 fragColor, in vec2 fragCoord ) '
+        // however the proper signature for a glsl shader is just main()
+        // We need to include the main body which just calls the shadertoy method. 
         private static List<string> mainFunctionPostPend
         {
             get
@@ -88,9 +92,9 @@ namespace Uriel.Support
             }
         }
 
-        private static List<string> ModifyLinesForShaderToy(List<string> inputLines, ShaderVersion fragmentShaderVersion, List<FragmentShaderUniformType> uniforms )
+        private static List<string> ModifyLinesForShaderToy(List<string> inputLines, ShaderVersion fragmentShaderVersion, List<KnownFragmentShaderUniform> uniforms )
         {
-            List<string> toReturn = new List<string>() { fragmentShaderVersion.ToShaderVersionString() };
+            List<string> toReturn = new List<string>() { ShaderVersionUtilites.VersionTag(fragmentShaderVersion) };
             toReturn.AddRange(uniforms.Select(x => UniformTypeToUniformDeclaration.Definitions[x]));
             toReturn.AddRange(inputLines);
             toReturn.AddRange(mainFunctionPostPend);

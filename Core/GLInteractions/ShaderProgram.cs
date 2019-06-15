@@ -17,10 +17,10 @@ namespace Uriel
 
         private readonly List<string> FragmentSource;
         private readonly List<string> VertexSource;
-        private readonly List<FragmentShaderUniformType> expectedUniforms;
+        private readonly List<KnownFragmentShaderUniform> expectedUniforms;
         private readonly VertexFormat expectedVertexes;
 
-        public ShaderProgram(List<string> fragmentSource, List<string> vertexSource, List<FragmentShaderUniformType> expectedUniforms, VertexFormat expectedVertexes) 
+        public ShaderProgram(List<string> fragmentSource, List<string> vertexSource, List<KnownFragmentShaderUniform> expectedUniforms, VertexFormat expectedVertexes) 
         {
             this.FragmentSource = fragmentSource;
             this.VertexSource = vertexSource;

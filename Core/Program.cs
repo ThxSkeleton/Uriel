@@ -16,15 +16,30 @@ namespace Uriel
         [STAThread]
         static void Main()
         {
-            UrielConfiguration config = new UrielConfiguration()
+            UrielConfiguration editorMode = new UrielConfiguration()
             {
                 Length = 900,
                 Height = 900,
                 LockSize = true,
                 LoggingEnabled = true,
+                WorkflowMode = UrielWorkflowMode.EditorMode,
 
                 WatchDirectory = new List<string>() { @"Z:\ShaderStore\", (Directory.GetParent(Assembly.GetExecutingAssembly().Location).FullName) + "\\ExampleShaders" }
             };
+
+            UrielConfiguration movieMode = new UrielConfiguration()
+            {
+                Length = 900,
+                Height = 900,
+                LockSize = true,
+                LoggingEnabled = true,
+                WorkflowMode = UrielWorkflowMode.MovieMode,
+                MovieModeShaderFileName = @"Z:\Uriel\Core\bin\Debug\ExampleShaders\TexTest.glsl",
+                WatchDirectory = new List<string>() 
+            };
+
+            //UrielConfiguration config = editorMode;
+            UrielConfiguration config = movieMode;
 
             StaticLogger.Create(config.LoggingEnabled);
 

@@ -46,7 +46,7 @@ namespace Uriel
         // Define the event handlers.
         private static void OnChanged(object source, FileSystemEventArgs eventArgs)
         {
-            LoadFile(eventArgs.FullPath);
+            LoadAndAddToShaderStore(eventArgs.FullPath);
         }
 
         public void LoadAll()
@@ -59,40 +59,22 @@ namespace Uriel
 
                 foreach (var file in allFiles)
                 {
-                    LoadFile(file);
+                    LoadAndAddToShaderStore(file);
                 }
             }
         }
 
-        private static void LoadFile(string fullPath)
+        private static void LoadAndAddToShaderStore(string fileName)
         {
             try
             {
-                StaticLogger.Logger.DebugFormat("Opening Filestream for {0}", fullPath);
-
-                FileStream fileStream = new FileStream(fullPath, FileMode.Open, FileAccess.Read);
-
-                StaticLogger.Logger.DebugFormat("Successfully opened Filestream for {0}", fullPath);
-
-                using (StreamReader sr = new StreamReader(fileStream))
-                {
-                    // Read the stream to a string, and write the string to the console.
-                    string fileContent = sr.ReadToEnd();
-
-                    List<string> shaderLines = fileContent.Trim().Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None).Select(x => x + "\n").ToList();
-
-                    StaticLogger.Logger.DebugFormat("File {0} has {1} lines.", fullPath, shaderLines.Count);
-
-                    var translatedShader = ModifyLines.TranslateShader(shaderLines, fullPath, DateTime.UtcNow);
-
-                    ShaderStore.Shaders.Push(translatedShader);
-                }
+                ShaderCreationArguments fromFileArguments = ShaderLoader.LoadFromFile(fileName);
+                ShaderStore.Shaders.Push(fromFileArguments);
             }
             catch (Exception ex)
             {
-                StaticLogger.Logger.ErrorFormat("Could not read {0} : {1}", fullPath, ex.ToString());
+                StaticLogger.Logger.ErrorFormat("Could not read {0} : {1}", fileName, ex.ToString());
             }
-
         }
 
         public ShaderCreationArguments GetNew()
@@ -111,6 +93,7 @@ namespace Uriel
             }
             else
             {
+                // Don't log here - it will be invoked every single frame.
                 return null;
             }
         }

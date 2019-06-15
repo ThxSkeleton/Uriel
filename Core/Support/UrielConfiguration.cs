@@ -12,6 +12,10 @@ namespace Uriel
 
         public bool LoggingEnabled { get; set; }
 
+        public UrielWorkflowMode WorkflowMode { get; set; }
+
+        public string MovieModeShaderFileName { get; set; }
+
         public List<string> WatchDirectory { get; set; }
     }
 }

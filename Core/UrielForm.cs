@@ -14,21 +14,26 @@ namespace Uriel
 {
     public class UrielForm : Form
     {
+        private readonly UrielConfiguration configuration;
+
+        // Winforms Junk
         private GlControl RenderControl;
         private StatusStrip StatusStrip;
-        private readonly UrielConfiguration configuration;
         private FrameTracker FrameTracker;
 
         private ToolStripStatusLabel FpsLabel;
         private ToolStripStatusLabel U_timeLabel;
         private ToolStripStatusLabel KeyState;
+        private Panel LeftPanel;
+        private ListBox ShaderSelector;
+        private TextBox ErrorBox;
 
+        private const int LEFT_PANEL_WIDTH = 300;
+
+        // Core Components.
         private RenderLoop renderLoop;
         private ShaderBuilder builder;
         private readonly ShaderFileWatcher watcher;
-
-        private Panel LeftPanel;
-        private ListBox ShaderSelector;
 
         public BindingList<ShaderBlob> ShaderBlobs = new BindingList<ShaderBlob>();
 
@@ -36,10 +41,7 @@ namespace Uriel
         public TotalKeyState tks = new TotalKeyState();
         public KeyInterpreter ki = new KeyInterpreter();
 
-        public ShaderBlob Previous;
-        private TextBox ErrorBox;
-
-        private const int LEFT_PANEL_WIDTH = 300;
+        private ShaderBlob CurrentShader;
 
         public DateTime StartTime { get; private set; }
 
@@ -169,7 +171,7 @@ namespace Uriel
             this.StartPosition = FormStartPosition.CenterScreen;
 
             // 
-            // SampleForm
+            // The Uriel Form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = AutoScaleMode.None;
@@ -193,10 +195,12 @@ namespace Uriel
             ShaderSelector.Refresh();
         }
 
-        private void StatusStrip_Update()
+        private void StatusStrip_Update(double time)
         {
             StatusStrip.Invalidate();
             UpdateFPSLabel(this.FrameTracker.averageFramePerSecond);
+            UpdateKeyStateLabel(this.tks);
+            UpdateTimeLabel(time);
             StatusStrip.Refresh();
         }
 
@@ -228,11 +232,28 @@ namespace Uriel
 
         private void ContextCreated(uint multisampleBits)
         {
+            GlErrorLogger.Check();
             // Uses multisampling, if available
             if (Gl.CurrentVersion != null && Gl.CurrentVersion.Api == KhronosVersion.ApiGl && multisampleBits > 0)
             {
                 Gl.Enable(EnableCap.Multisample);
             }
+
+            if (this.configuration.WorkflowMode == UrielWorkflowMode.EditorMode)
+            {
+                LoadInitialShaders();
+            }
+            else
+            {
+                this.CurrentShader = builder.BuildProgram(ShaderLoader.LoadFromFile(this.configuration.MovieModeShaderFileName));
+            }
+
+            StartTime = DateTime.UtcNow;
+        }
+
+        private void LoadInitialShaders()
+        {
+            StaticLogger.Logger.Debug("Loading Intitial Shaders.");
 
             watcher.LoadAll();
 
@@ -241,20 +262,19 @@ namespace Uriel
                 ShaderBlobs.Add(builder.BuildProgram(shaderBlob));
             }
 
-            GlErrorLogger.Check();
+            StaticLogger.Logger.Debug("Done Loading Initial Shaders.");
 
-            StartTime = DateTime.UtcNow;
+            this.CurrentShader = ShaderBlobs.Last();
         }
+
 
         private void Destroy()
         {
 
         }
 
-        private void Loop()
+        private void CreateNewShaderAndSelect()
         {
-            ShaderBlob currentShader;
-
             var possibleNewShader = watcher.GetNew();
             if (possibleNewShader != null)
             {
@@ -262,27 +282,37 @@ namespace Uriel
                 this.ShaderBlobs.Add(newShader);
                 ShaderSelector.SelectedIndex = ShaderSelector.Items.Count - 1;
             }
+        }
 
-            currentShader = (ShaderBlob)ShaderSelector.SelectedItem;
+        private ShaderBlob LoadNewShaderFromSelection(ShaderBlob currentShader)
+        {
+            ShaderBlob selectedShader = (ShaderBlob)ShaderSelector.SelectedItem;
 
-
-            if (currentShader != Previous)
+            if (currentShader != selectedShader)
             {
                 this.StartTime = DateTime.UtcNow;
                 ErrorBox.Text = currentShader.ErrorMessage;
                 ErrorBox.Refresh();
             }
 
-            this.Previous = currentShader;
+            return selectedShader;
+        }
+
+
+        private void Loop()
+        {
+            if (this.configuration.WorkflowMode == UrielWorkflowMode.EditorMode)
+            {
+                CreateNewShaderAndSelect();
+                this.CurrentShader = LoadNewShaderFromSelection(this.CurrentShader);
+            }
 
             this.FrameTracker.StartFrame();
 
             double time = (DateTime.UtcNow - StartTime).TotalSeconds;
 
-            UpdateTimeLabel(time);
-
-            if (currentShader.CreationArguments.Type.Uniforms.Contains(FragmentShaderUniformType.CursorPosition) ||
-                currentShader.CreationArguments.Type.Uniforms.Contains(FragmentShaderUniformType.CursorMovement))
+            if (this.CurrentShader.CreationArguments.Type.Uniforms.Contains(KnownFragmentShaderUniform.CursorPosition) ||
+                this.CurrentShader.CreationArguments.Type.Uniforms.Contains(KnownFragmentShaderUniform.CursorMovement))
             {
                 UpdateKeys();
             }
@@ -297,16 +327,18 @@ namespace Uriel
                 CursorPosition = this.tks.Position
             };
 
-            renderLoop.Render(currentShader, uniforms);
+            renderLoop.Render(this.CurrentShader, uniforms);
 
             this.FrameTracker.EndFrame();
-            StatusStrip_Update();
+            if (this.configuration.WorkflowMode == UrielWorkflowMode.EditorMode)
+            {
+                StatusStrip_Update(time);
+            }
         }
 
         private void UpdateKeys()
         {
             this.tks = this.ki.Update(this.tks, this.listener.CurrentKeys);
-            this.UpdateKeyStateLabel(this.tks);
         }
 
         protected override void Dispose(bool disposing)

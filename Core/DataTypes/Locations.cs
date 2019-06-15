@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Uriel.DataTypes;
 using Uriel.ShaderTypes;
 
 namespace Uriel
@@ -81,7 +82,7 @@ namespace Uriel
         public int Location_iCursorMovement { get; set; }
 
 
-        public void ValidateAllPresent(List<FragmentShaderUniformType> expectedUniforms)
+        public void ValidateAllPresent(List<KnownFragmentShaderUniform> expectedUniforms)
         {
             foreach(var uniform in expectedUniforms)
             {
@@ -89,29 +90,29 @@ namespace Uriel
             }
         }
 
-        private void ValidateSingle(FragmentShaderUniformType uniform)
+        private void ValidateSingle(KnownFragmentShaderUniform uniform)
         {
-            if (uniform == FragmentShaderUniformType.Dimension)
+            if (uniform == KnownFragmentShaderUniform.Dimension)
             {
                 LocationValidation.ValidateSingle(Location_iResolution, nameof(Location_iResolution), false);
             }
-            else if (uniform == FragmentShaderUniformType.Time)
+            else if (uniform == KnownFragmentShaderUniform.Time)
             {
                 LocationValidation.ValidateSingle(Location_iTime, nameof(Location_iTime), false);
             }
-            else if (uniform == FragmentShaderUniformType.Mouse)
+            else if (uniform == KnownFragmentShaderUniform.Mouse)
             {
                 LocationValidation.ValidateSingle(Location_iMouse, nameof(Location_iMouse), false);
             }
-            else if (uniform == FragmentShaderUniformType.Texture)
+            else if (uniform == KnownFragmentShaderUniform.Texture)
             {
                 LocationValidation.ValidateSingle(Location_iTexture, nameof(Location_iTexture), false);
             }
-            else if (uniform == FragmentShaderUniformType.CursorPosition)
+            else if (uniform == KnownFragmentShaderUniform.CursorPosition)
             {
                 LocationValidation.ValidateSingle(Location_iCursorPosition, nameof(Location_iCursorPosition), false);
             }
-            else if (uniform == FragmentShaderUniformType.CursorMovement)
+            else if (uniform == KnownFragmentShaderUniform.CursorMovement)
             {
                 LocationValidation.ValidateSingle(Location_iCursorMovement, nameof(Location_iCursorMovement), false);
             }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Uriel.DataTypes;
 using Uriel.ShaderTypes;
 
 namespace Uriel.Support
@@ -11,7 +12,7 @@ namespace Uriel.Support
     {
         public static List<string> VertexSourceLookup(VertexFormat vertexFormat, ShaderVersion vertexShaderVersion)
         {
-            var toReturn = new List<string>() { VersionTag(vertexShaderVersion) };
+            var toReturn = new List<string>() { ShaderVersionUtilites.VersionTag(vertexShaderVersion) };
 
             if (vertexFormat == VertexFormat.Plain)
             {
@@ -32,23 +33,6 @@ namespace Uriel.Support
 
             return toReturn;
         }
-
-        public static string VersionTag(ShaderVersion vertexShaderVersion)
-        {
-            if (vertexShaderVersion == ShaderVersion.Version150Compatability)
-            {
-                return "#version 150 compatibility\n";
-            }
-            else if (vertexShaderVersion == ShaderVersion.Version300Core)
-            {
-                return "#version 300 core\n";
-            }
-            else
-            {
-                throw new System.InvalidOperationException("Unsupported Shader Type.");
-            }
-        }
-
 
         private static string[] _VertexSourceGL_Simplest = {
             "in vec2 aPosition;\n",
