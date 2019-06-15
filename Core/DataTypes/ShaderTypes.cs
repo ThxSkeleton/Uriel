@@ -8,7 +8,7 @@ using Uriel.DataTypes;
 namespace Uriel.ShaderTypes
 {
 
-    public class ShaderBlob
+    public class ShaderBlob : PrettyPrintObject
     {
         public string DisplayName { get; set; }
         public ShaderCreationArguments CreationArguments { get; set; }
@@ -19,7 +19,7 @@ namespace Uriel.ShaderTypes
         public uint TextureName { get; set; }
     }
 
-    public class ShaderCreationArguments
+    public class ShaderCreationArguments : PrettyPrintObject
     {
         public ShaderBlobType Type { get; set; }
 
@@ -54,138 +54,114 @@ namespace Uriel.ShaderTypes
     /// <summary>
     /// Type information for the Shader - this should be a "big enum" 
     /// </summary>
-    public class ShaderBlobType
+    public class ShaderBlobType : PrettyPrintObject
     {
         #region PredeterminedTypes
 
-        public static ShaderBlobType PlainVertexNoUniforms
+        public static ShaderBlobType PlainVertexNoUniforms()
         {
-            get
+            return new ShaderBlobType()
             {
-                return new ShaderBlobType()
-                {
-                    UseTexture = false,
-                    VertexFormat = VertexFormat.Plain,
-                    VertexShaderVersion =  ShaderVersion.Version150Compatability,
-                    UseIndexing = false,
-                    Uniforms = UniformSet.None(),
-                    FragmentShaderVersion =  ShaderVersion.Version150Compatability
-                };
-            }
+                UseTexture = false,
+                VertexFormat = VertexFormat.Plain,
+                VertexShaderVersion =  ShaderVersion.Version150Compatability,
+                UseIndexing = false,
+                Uniforms = UniformSet.None(),
+                FragmentShaderVersion =  ShaderVersion.Version150Compatability
+            };
         }
 
-        public static ShaderBlobType Time
+        public static ShaderBlobType Time()
         {
-            get
+            return new ShaderBlobType()
             {
-                return new ShaderBlobType()
-                {
-                    UseTexture = false,
-                    VertexFormat = VertexFormat.Plain,
-                    VertexShaderVersion =  ShaderVersion.Version150Compatability,
-                    UseIndexing = false,
-                    Uniforms = UniformSet.Time(),
-                    FragmentShaderVersion =  ShaderVersion.Version150Compatability
-                };
-            }
+                UseTexture = false,
+                VertexFormat = VertexFormat.Plain,
+                VertexShaderVersion =  ShaderVersion.Version150Compatability,
+                UseIndexing = false,
+                Uniforms = UniformSet.Time(),
+                FragmentShaderVersion =  ShaderVersion.Version150Compatability
+            };
         }
 
-        public static ShaderBlobType Standard
+        public static ShaderBlobType Standard()
         {
-            get
+            return new ShaderBlobType()
             {
-                return new ShaderBlobType()
-                {
-                    UseTexture = false,
-                    VertexFormat = VertexFormat.Plain,
-                    VertexShaderVersion =  ShaderVersion.Version150Compatability,
-                    UseIndexing = true,
-                    Uniforms = UniformSet.DimensionAndTime(),
-                    FragmentShaderVersion =  ShaderVersion.Version150Compatability
-                };
-            }
+                UseTexture = false,
+                VertexFormat = VertexFormat.Plain,
+                VertexShaderVersion = ShaderVersion.Version150Compatability,
+                UseIndexing = true,
+                Uniforms = UniformSet.DimensionAndTime(),
+                FragmentShaderVersion = ShaderVersion.Version150Compatability
+            };
         }
 
-        public static ShaderBlobType Color_NoIndex
+        public static ShaderBlobType Color_NoIndex()
         {
-            get
+            return new ShaderBlobType()
             {
-                return new ShaderBlobType()
-                {
-                    UseTexture = false,
-                    VertexFormat = VertexFormat.WithColor,
-                    VertexShaderVersion =  ShaderVersion.Version150Compatability,
-                    UseIndexing = false,
-                    Uniforms = UniformSet.Time(),
-                    FragmentShaderVersion =  ShaderVersion.Version150Compatability
-                };
-            }
+                UseTexture = false,
+                VertexFormat = VertexFormat.WithColor,
+                VertexShaderVersion = ShaderVersion.Version150Compatability,
+                UseIndexing = false,
+                Uniforms = UniformSet.Time(),
+                FragmentShaderVersion = ShaderVersion.Version150Compatability
+            };
         }
 
-        public static ShaderBlobType Color_WithIndex
+        public static ShaderBlobType Color_WithIndex()
         {
-            get
+            return new ShaderBlobType()
             {
-                return new ShaderBlobType()
-                {
-                    UseTexture = false,
-                    VertexFormat = VertexFormat.WithColor,
-                    VertexShaderVersion =  ShaderVersion.Version150Compatability,
-                    UseIndexing = true,
-                    Uniforms = UniformSet.Time(),
-                    FragmentShaderVersion =  ShaderVersion.Version150Compatability
-                };
-            }
+                UseTexture = false,
+                VertexFormat = VertexFormat.WithColor,
+                VertexShaderVersion = ShaderVersion.Version150Compatability,
+                UseIndexing = true,
+                Uniforms = UniformSet.Time(),
+                FragmentShaderVersion = ShaderVersion.Version150Compatability
+            };
         }
 
-        public static ShaderBlobType TextureStandard
+        public static ShaderBlobType TextureStandard()
         {
-            get
+            return new ShaderBlobType()
             {
-                return new ShaderBlobType()
-                {
-                    UseTexture = true,
-                    VertexFormat = VertexFormat.WithTexture,
-                    VertexShaderVersion =  ShaderVersion.Version150Compatability,
-                    UseIndexing = true,
-                    Uniforms = UniformSet.None(),
-                    FragmentShaderVersion =  ShaderVersion.Version150Compatability
-                };
-            }
+                UseTexture = true,
+                VertexFormat = VertexFormat.WithTexture,
+                VertexShaderVersion = ShaderVersion.Version150Compatability,
+                UseIndexing = true,
+                Uniforms = UniformSet.None(),
+                FragmentShaderVersion = ShaderVersion.Version150Compatability
+            };
         }
 
-        public static ShaderBlobType Texture_FromFile
+        public static ShaderBlobType Texture_FromFile()
         {
-            get
+            return new ShaderBlobType()
             {
-                return new ShaderBlobType()
-                {
-                    ShaderSource = ShaderSource.FromFile,
-                    UseTexture = true,
-                    VertexFormat = VertexFormat.Plain,
-                    VertexShaderVersion =  ShaderVersion.Version150Compatability,
-                    UseIndexing = true,
-                    Uniforms = UniformSet.ShaderToyStandardPlusTexture(),
-                    FragmentShaderVersion =  ShaderVersion.Version150Compatability
-                };
-            }
+                ShaderSource = ShaderSource.FromFile,
+                UseTexture = true,
+                VertexFormat = VertexFormat.Plain,
+                VertexShaderVersion = ShaderVersion.Version150Compatability,
+                UseIndexing = true,
+                Uniforms = UniformSet.ShaderToyStandardPlusTexture(),
+                FragmentShaderVersion = ShaderVersion.Version150Compatability
+            };
         }
 
-        public static ShaderBlobType UrielStandard_FromFile
+        public static ShaderBlobType UrielStandard_FromFile()
         {
-            get
+            return new ShaderBlobType()
             {
-                return new ShaderBlobType()
-                {
-                    ShaderSource = ShaderSource.FromFile,
-                    UseTexture = false,
-                    VertexFormat = VertexFormat.Plain,
-                    VertexShaderVersion =  ShaderVersion.Version150Compatability,
-                    UseIndexing = true,
-                    Uniforms = UniformSet.UrielStandard(),
-                    FragmentShaderVersion =  ShaderVersion.Version150Compatability
-                };
-            }
+                ShaderSource = ShaderSource.FromFile,
+                UseTexture = false,
+                VertexFormat = VertexFormat.Plain,
+                VertexShaderVersion = ShaderVersion.Version150Compatability,
+                UseIndexing = true,
+                Uniforms = UniformSet.UrielStandard(),
+                FragmentShaderVersion = ShaderVersion.Version150Compatability
+            };
         }
 
         #endregion

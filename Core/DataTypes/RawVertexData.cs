@@ -1,6 +1,6 @@
 ﻿namespace Uriel.DataTypes
 {
-    public class RawVertexData
+    public class RawVertexData : PrettyPrintObject
     {
         public float[] positions { get; set; }
 

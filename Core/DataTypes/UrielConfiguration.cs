@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 
-namespace Uriel
+namespace Uriel.DataTypes
 {
-    public class UrielConfiguration
+    public class UrielConfiguration : PrettyPrintObject
     {
         public int Length { get; set; }
 

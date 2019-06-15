@@ -1,4 +1,4 @@
-﻿namespace Uriel
+﻿namespace Uriel.DataTypes
 {
     public enum UrielWorkflowMode
     {

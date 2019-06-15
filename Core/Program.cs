@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Windows.Forms;
 
 using Khronos;
+using Uriel.DataTypes;
 
 namespace Uriel
 {
@@ -43,7 +44,9 @@ namespace Uriel
 
             StaticLogger.Create(config.LoggingEnabled);
 
-            StaticLogger.Logger.Info("Starting");
+            StaticLogger.Logger.Info("Starting Uriel Main");
+
+            StaticLogger.Logger.InfoFormat("Uriel Config: {0}", config.ToString());
 
             KhronosApi.Log += delegate(object sender, KhronosLogEventArgs e) {
                 StaticLogger.Logger.Info(e.ToString());

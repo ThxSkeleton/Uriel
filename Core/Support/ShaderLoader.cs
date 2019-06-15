@@ -27,7 +27,7 @@ namespace Uriel.Support
 
                 var translatedShader = ModifyLines.TranslateShader(shaderLines, fullPath, DateTime.UtcNow);
 
-                StaticLogger.Logger.Debug("Successfully Loaded and translated File {0} into a ShaderArgument object");
+                StaticLogger.Logger.DebugFormat("Successfully Loaded and translated File {0} into a ShaderArgument object", fullPath);
 
                 return translatedShader;
             }

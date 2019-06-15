@@ -42,7 +42,7 @@ namespace Uriel.Support
 
             if (!urielInterpretable)
             {
-                ShaderBlobType defaultType = ShaderBlobType.UrielStandard_FromFile;
+                ShaderBlobType defaultType = ShaderBlobType.UrielStandard_FromFile();
 
                 StaticLogger.Logger.DebugFormat("Shader is not Uriel Interpretable - proceeding with conversion to default ShaderBlobType {0}", defaultType);
 
@@ -61,7 +61,7 @@ namespace Uriel.Support
             else
             {
                 // TODO: the type should eventually come from the uriel directive
-                var defaultnonInterpretableType = ShaderBlobType.Texture_FromFile;
+                var defaultnonInterpretableType = ShaderBlobType.Texture_FromFile();
 
                 StaticLogger.Logger.DebugFormat("Shader is Uriel Interpretable - proceeding with conversion to default ShaderBlobType {0}", defaultnonInterpretableType);
 
@@ -82,7 +82,7 @@ namespace Uriel.Support
 
                 return new ShaderCreationArguments()
                 {
-                    Type = ShaderBlobType.Texture_FromFile,
+                    Type = ShaderBlobType.Texture_FromFile(),
                     SimpleName = "FromFile",
                     FragmentShaderSource = alteredLines,
                     TexturePath = possibleTextureAbsolutePath,

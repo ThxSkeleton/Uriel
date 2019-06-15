@@ -97,6 +97,8 @@
     <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.3.0\lib\netstandard1.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
     </Reference>
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -124,6 +126,7 @@
     <Compile Include="GLInteractions\ShaderObject.cs" />
     <Compile Include="DataTypes\Locations.cs" />
     <Compile Include="GLInteractions\VertexArray.cs" />
+    <Compile Include="DataTypes\PrettyPrintObject.cs" />
     <Compile Include="Support\ShaderFileWatcher.cs" />
     <Compile Include="Support\FrameTracker.cs" />
     <Compile Include="GLInteractions\GlErrorLogger.cs" />
@@ -133,8 +136,8 @@
     <Compile Include="Support\ShaderToyConverter.cs" />
     <Compile Include="Support\ShaderZoo.cs" />
     <Compile Include="Support\StaticLogger.cs" />
-    <Compile Include="Support\UrielConfiguration.cs" />
-    <Compile Include="Support\UrielWorkflowMode.cs" />
+    <Compile Include="DataTypes\UrielConfiguration.cs" />
+    <Compile Include="DataTypes\UrielWorkflowMode.cs" />
     <Compile Include="Support\VertexShaderSource.cs" />
     <Compile Include="UrielForm.cs">
       <SubType>Form</SubType>

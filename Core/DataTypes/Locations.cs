@@ -5,7 +5,7 @@ using Uriel.ShaderTypes;
 
 namespace Uriel
 {
-    public class LocationValidation
+    public class LocationValidation : PrettyPrintObject
     {
         public static bool Enabled(int Location)
         {
@@ -30,7 +30,7 @@ namespace Uriel
         }
     }
 
-    public class VertexLocations
+    public class VertexLocations : PrettyPrintObject
     {
         public int Location_Position { get; set; }
 
@@ -67,7 +67,7 @@ namespace Uriel
         }
     }
 
-    public class UniformLocations
+    public class UniformLocations : PrettyPrintObject
     {
         public int Location_iMouse { get; set; }
 

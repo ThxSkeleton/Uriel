@@ -28,7 +28,6 @@ namespace Uriel
         private ListBox ShaderSelector;
         private TextBox ErrorBox;
 
-        private const int LEFT_PANEL_WIDTH = 300;
 
         // Core Components.
         private RenderLoop renderLoop;
@@ -67,6 +66,14 @@ namespace Uriel
         {
             KeyState.Text = string.Format("TKS: [{0},{1},{2}] [{3}, {4}, {5}]", tks.Position.x, tks.Position.y, tks.Position.z, tks.Movement.x, tks.Movement.y, tks.Movement.z);
         }
+
+
+        private const int LEFT_PANEL_WIDTH = 300;
+        private const int LEFT_SUBPANEL_HEIGHT = 400;
+        private const int StatusStripLabelWidth = 109;
+        private const int StatusStripLabelHeight = 17;
+
+        private const int ClientSizeWidthBuffer = 200;
 
         private void InitializeComponent()
         {
@@ -114,15 +121,15 @@ namespace Uriel
             });
 
             FpsLabel.Name = "fpsLabel";
-            FpsLabel.Size = new System.Drawing.Size(109, 17);
+            FpsLabel.Size = new System.Drawing.Size(StatusStripLabelWidth, StatusStripLabelHeight);
             FpsLabel.Text = "---";
 
             U_timeLabel.Name = "u_timeLabel";
-            U_timeLabel.Size = new System.Drawing.Size(109, 17);
+            U_timeLabel.Size = new System.Drawing.Size(StatusStripLabelWidth, StatusStripLabelHeight);
             U_timeLabel.Text = "---";
 
             KeyState.Name = "KeyState";
-            KeyState.Size = new System.Drawing.Size(109, 17);
+            KeyState.Size = new System.Drawing.Size(StatusStripLabelWidth, StatusStripLabelHeight);
             KeyState.Text = "---";
 
             // ListBar
@@ -136,7 +143,7 @@ namespace Uriel
             LeftPanel.Controls.Add(ShaderSelector);
 
             ShaderSelector.Width = LEFT_PANEL_WIDTH;
-            ShaderSelector.Height = 400;
+            ShaderSelector.Height = LEFT_SUBPANEL_HEIGHT;
             ShaderSelector.DataSource = this.ShaderBlobs;
             ShaderSelector.DisplayMember = "DisplayName";
 
@@ -149,7 +156,7 @@ namespace Uriel
 
             ErrorBox.Dock = DockStyle.Bottom;
             ErrorBox.Width = LEFT_PANEL_WIDTH;
-            ErrorBox.Height = 400;
+            ErrorBox.Height = LEFT_SUBPANEL_HEIGHT;
 
             FrameTracker = new FrameTracker();
 
@@ -175,13 +182,14 @@ namespace Uriel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = AutoScaleMode.None;
-            this.ClientSize = new System.Drawing.Size(this.configuration.Length + 200, this.configuration.Height);
+            this.ClientSize = new System.Drawing.Size(this.configuration.Length + ClientSizeWidthBuffer, this.configuration.Height);
             this.Controls.Add(this.RenderControl);
             this.Controls.Add(this.StatusStrip);
             this.Controls.Add(this.LeftPanel);
             this.Name = "Uriel";
             this.Text = "Uriel";
-            this.ResumeLayout(false);
+
+            this.ResumeLayout(false); // ?
 
             this.renderLoop = new RenderLoop(this.configuration.Length, this.configuration.Height);
             this.builder = new ShaderBuilder(ShaderZoo.BadShaderArguments());

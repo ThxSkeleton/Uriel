@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Uriel.DataTypes
 {
-    public class UniformValues
+    public class UniformValues : PrettyPrintObject
     {
         public double Time { get; set; }
 
@@ -28,7 +28,7 @@ namespace Uriel.DataTypes
         CursorMovement
     }
 
-    public class UniformDefinition<T>
+    public class UniformDefinition<T> : PrettyPrintObject
     {
         public KnownFragmentShaderUniform UrielName { get; set; }
 
