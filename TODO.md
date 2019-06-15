@@ -15,42 +15,10 @@
 * Moving between Shaders resets smoothly
 * Load Shader by watching directory
 
-## Uriel v0.77: Shader Loading from File Dialog
-* Load Shader from file via dialog
-* Shader Stack with buttons
-* Shader Compilation Error Message Popup
+## Uriel v0.8: Texture Support - DONE
+* Lots of details.
 
-## Uriel v0.79: Visual Studio "Plugin" Mode
-* Not actually a Plugin
-* Test out workflow and tweak.
-
-## Uriel v0.8: Texture Support
-* Need more research to even decide on steps for this
-
-## Uriel v0.9: Refactor and Cleanup
-* Refactor - make it Data Driven
-* Isolate Winforms Stuff
-* Configuration File - xml
-
-## Uriel v1.0 Minimum Viable Product Fit + Finish
-* Splash screen with Uriel Art
-* Uriel Icon
-* Bugfixes 
-
-# Additional Features
-
-## Optimization
-* Learn how milisecond level timing is handled 
-* Log4Net, with appropriate settings to be able to handle per-frame log statements
-* Attempt FPS limiter
-* Expectation: 90 FPS for Small Window
-* Expectation: 60 FPS for Giant Window
-* Profile GC - is it even an issue?
-
-## Build System
-* CI framework
-* Build Drop
-* Actual Versioning System
+# Core Features
 
 ## Demos and Compilations
 * Self explanatory
@@ -58,12 +26,48 @@
 ## Movie Mode
 * Runs as per config
 * Support Slower Time
+
+# Fix and Finish Features
+
+## Workflow Iteration Design - How should Uriel be used?
+* Design the core workflow in a way that's not hacky.
+* Create a workflow description Doc that you build a scenario list from.
+
+## Look at other GUI Frameworks
+* Are we going forward with winforms or switching to something else.
+
+## Beauty Parlor
+* Splash screen with Uriel Art
+* Uriel Icon
+
+## GLSL basic file handling improvements 
+* Load Shader from file via dialog
+* Save File - previous iterations can't be saved, have no cache except in memory.
+* Shader Stack with buttons
+* Shader Compilation Error Message Popup 
+* Line error highlighting! (neat) 
+
+## Build System
+* CI framework
+* Build Drop
+* Actual Versioning System
+
+## Advanced Features
+
+## Movie Mode - Export
 * Export as video file
+
+## Cellular Automata Mode
+* Requires use of buffers
+* Requires pretty sophisticated Uriel Directives
 
 ## Audio Input Support
 * Audio Input as uniform
 * FFT'ed variable? Interesting
 * Audio File or Live Audio Feed
 
-## Mouse Uniform
+## Load Shaders from Shadertoy URI
+* Load + Save
+
+## Mouse Uniform Implementation
 * Seems easy, probably
