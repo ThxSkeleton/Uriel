@@ -15,15 +15,15 @@
 * Moving between Shaders resets smoothly
 * Load Shader by watching directory
 
-## Uriel v0.8: Texture Support
-* Done
+## Uriel v0.8: Texture Support - DONE
+* Lots of details.
 
-## Uriel v0.87: Shader Loading from File Dialog
+## Uriel v0.87: Shader Loading from File Dialog 
 * Load Shader from file via dialog
 * Shader Stack with buttons
 * Shader Compilation Error Message Popup
 
-## Uriel v0.88: Uriel Shader Directive 
+## Uriel v0.88: Uriel Shader Directive - PARTIALLY DONE
 * flesh out the syntax
 
 ## Uriel v0.89: Visual Studio "Plugin" Mode
@@ -63,6 +63,10 @@
 * Runs as per config
 * Support Slower Time
 * Export as video file
+
+## Cellular Automata Mode
+* Requires use of buffers
+* Requires pretty sophisticated Uriel Directives
 
 ## Audio Input Support
 * Audio Input as uniform
