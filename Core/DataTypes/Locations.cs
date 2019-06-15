@@ -5,23 +5,33 @@ using Uriel.ShaderTypes;
 
 namespace Uriel
 {
-    public class LocationValidation : PrettyPrintObject
+    public class LocationValidation
     {
         public static bool Enabled(int Location)
         {
             return Location >= 0;
         }
 
-        public static void ValidateSingle(int value, string name, bool shouldThrow)
+        public static void ValidateSingleVertex(int value, string name, bool shouldThrow)
+        {
+            ValidateSingle("Vertex", value, name, shouldThrow);
+        }
+
+        public static void ValidateSingleUniform(int value, string name, bool shouldThrow)
+        {
+            ValidateSingle("Uniform", value, name, shouldThrow);
+        }
+
+        private static void ValidateSingle(string type, int value, string name, bool shouldThrow)
         {
             if (Enabled(value))
             {
-                StaticLogger.Logger.InfoFormat("{0} is enabled with location {1}", name, value);
+                StaticLogger.Logger.InfoFormat("{0} {1} is enabled with location {2}", type, name, value);
             }
             else
             {
-                string disabledMessage = string.Format("{0} is disabled.", name);
-                StaticLogger.Logger.WarnFormat("{0} is disabled.", name);
+                string disabledMessage = string.Format("{0} {1} is disabled.", type, name);
+                StaticLogger.Logger.WarnFormat(disabledMessage);
                 if (shouldThrow)
                 {
                     throw new InvalidOperationException(disabledMessage);
@@ -42,23 +52,23 @@ namespace Uriel
         {
             if (expectedVertexLocations == VertexFormat.Plain)
             {
-                LocationValidation.ValidateSingle(Location_Position, nameof(Location_Position), true);
+                LocationValidation.ValidateSingleVertex(Location_Position, nameof(Location_Position), true);
             }
             else if (expectedVertexLocations == VertexFormat.WithColor)
             {
-                LocationValidation.ValidateSingle(Location_Position, nameof(Location_Position), true);
-                LocationValidation.ValidateSingle(Location_Color, nameof(Location_Color), true);
+                LocationValidation.ValidateSingleVertex(Location_Position, nameof(Location_Position), true);
+                LocationValidation.ValidateSingleVertex(Location_Color, nameof(Location_Color), true);
             }
             else if (expectedVertexLocations == VertexFormat.WithTexture)
             {
-                LocationValidation.ValidateSingle(Location_Position, nameof(Location_Position), true);
-                LocationValidation.ValidateSingle(Location_Texture, nameof(Location_Texture), true);
+                LocationValidation.ValidateSingleVertex(Location_Position, nameof(Location_Position), true);
+                LocationValidation.ValidateSingleVertex(Location_Texture, nameof(Location_Texture), true);
             }
             else if (expectedVertexLocations == VertexFormat.WithColorAndTexture)
             {
-                LocationValidation.ValidateSingle(Location_Position, nameof(Location_Position), true);
-                LocationValidation.ValidateSingle(Location_Texture, nameof(Location_Texture), true);
-                LocationValidation.ValidateSingle(Location_Color, nameof(Location_Color), true);
+                LocationValidation.ValidateSingleVertex(Location_Position, nameof(Location_Position), true);
+                LocationValidation.ValidateSingleVertex(Location_Texture, nameof(Location_Texture), true);
+                LocationValidation.ValidateSingleVertex(Location_Color, nameof(Location_Color), true);
             }
             else
             {
@@ -94,27 +104,27 @@ namespace Uriel
         {
             if (uniform == KnownFragmentShaderUniform.Dimension)
             {
-                LocationValidation.ValidateSingle(Location_iResolution, nameof(Location_iResolution), false);
+                LocationValidation.ValidateSingleUniform(Location_iResolution, nameof(Location_iResolution), false);
             }
             else if (uniform == KnownFragmentShaderUniform.Time)
             {
-                LocationValidation.ValidateSingle(Location_iTime, nameof(Location_iTime), false);
+                LocationValidation.ValidateSingleUniform(Location_iTime, nameof(Location_iTime), false);
             }
             else if (uniform == KnownFragmentShaderUniform.Mouse)
             {
-                LocationValidation.ValidateSingle(Location_iMouse, nameof(Location_iMouse), false);
+                LocationValidation.ValidateSingleUniform(Location_iMouse, nameof(Location_iMouse), false);
             }
             else if (uniform == KnownFragmentShaderUniform.Texture)
             {
-                LocationValidation.ValidateSingle(Location_iTexture, nameof(Location_iTexture), false);
+                LocationValidation.ValidateSingleUniform(Location_iTexture, nameof(Location_iTexture), false);
             }
             else if (uniform == KnownFragmentShaderUniform.CursorPosition)
             {
-                LocationValidation.ValidateSingle(Location_iCursorPosition, nameof(Location_iCursorPosition), false);
+                LocationValidation.ValidateSingleUniform(Location_iCursorPosition, nameof(Location_iCursorPosition), false);
             }
             else if (uniform == KnownFragmentShaderUniform.CursorMovement)
             {
-                LocationValidation.ValidateSingle(Location_iCursorMovement, nameof(Location_iCursorMovement), false);
+                LocationValidation.ValidateSingleUniform(Location_iCursorMovement, nameof(Location_iCursorMovement), false);
             }
         }
 
