@@ -4,9 +4,9 @@ namespace Uriel.DataTypes
 {
     public class UrielConfiguration : PrettyPrintObject
     {
-        public int Length { get; set; }
+        public int ViewPortLength { get; set; }
 
-        public int Height { get; set; }
+        public int ViewPortHeight { get; set; }
 
         public bool LockSize { get; set; }
 

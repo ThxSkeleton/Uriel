@@ -1,5 +1,6 @@
 ﻿using OpenGL;
 using System;
+using System.Drawing;
 using Uriel.DataTypes;
 using Uriel.ShaderTypes;
 
@@ -7,18 +8,9 @@ namespace Uriel.GLInteractions
 {
     public class RenderLoop
     {
-        private readonly int width;
-        private readonly int height;
-
-        public RenderLoop(int width, int height)
+        public void Render(ShaderBlob toRender, UniformValues uniforms, Size s)
         {
-            this.width = width;
-            this.height = height;
-        }
-
-        public void Render(ShaderBlob toRender, UniformValues uniforms)
-        {
-            Gl.Viewport(0, 0, width, height);
+            Gl.Viewport(0, 0, s.Width, s.Height);
             Gl.Clear(ClearBufferMask.ColorBufferBit);
 
             // Select the program for drawing

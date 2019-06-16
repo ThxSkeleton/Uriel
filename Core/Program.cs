@@ -19,8 +19,8 @@ namespace Uriel
         {
             UrielConfiguration editorMode = new UrielConfiguration()
             {
-                Length = 900,
-                Height = 900,
+                ViewPortLength = 900,
+                ViewPortHeight = 900,
                 LockSize = true,
                 LoggingEnabled = true,
                 WorkflowMode = UrielWorkflowMode.EditorMode,
@@ -30,8 +30,8 @@ namespace Uriel
 
             UrielConfiguration movieMode = new UrielConfiguration()
             {
-                Length = 900,
-                Height = 900,
+                ViewPortLength = 900,
+                ViewPortHeight = 900,
                 LockSize = true,
                 LoggingEnabled = true,
                 WorkflowMode = UrielWorkflowMode.MovieMode,

@@ -4,7 +4,7 @@ namespace Uriel
 {
     public class FrameTracker
     {
-        int frameCount;
+        public int frameCount;
 
         DateTime start;
 

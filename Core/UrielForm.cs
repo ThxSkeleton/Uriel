@@ -16,30 +16,30 @@ namespace Uriel
     {
         private readonly UrielConfiguration configuration;
 
-        // Winforms Junk
+        // Winforms Components
         private GlControl RenderControl;
-        private StatusStrip StatusStrip;
-        private FrameTracker FrameTracker;
 
-        private ToolStripStatusLabel FpsLabel;
-        private ToolStripStatusLabel U_timeLabel;
-        private ToolStripStatusLabel KeyState;
         private Panel LeftPanel;
         private ListBox ShaderSelector;
         private TextBox ErrorBox;
-
+        private StatusStrip StatusStrip;
+        private ToolStripStatusLabel FpsLabel;
+        private ToolStripStatusLabel U_timeLabel;
+        private ToolStripStatusLabel KeyState;
 
         // Core Components.
-        private RenderLoop renderLoop;
-        private ShaderBuilder builder;
+        private readonly RenderLoop renderLoop;
+        private readonly ShaderBuilder builder;
         private readonly ShaderFileWatcher watcher;
+        private readonly FrameTracker FrameTracker;
+        private readonly KeyPressListener listener = new KeyPressListener();
+        private readonly KeyInterpreter ki = new KeyInterpreter();
 
-        public BindingList<ShaderBlob> ShaderBlobs = new BindingList<ShaderBlob>();
+        // Public list
+        public readonly BindingList<ShaderBlob> ShaderBlobs;
 
-        public KeyPressListener listener = new KeyPressListener();
-        public TotalKeyState tks = new TotalKeyState();
-        public KeyInterpreter ki = new KeyInterpreter();
-
+        // Current State Data Objects
+        private TotalKeyState tks = new TotalKeyState();
         private ShaderBlob CurrentShader;
 
         public DateTime StartTime { get; private set; }
@@ -47,8 +47,21 @@ namespace Uriel
         public UrielForm(UrielConfiguration configuration)
         {
             this.configuration = configuration;
-            this.watcher = new ShaderFileWatcher(configuration.WatchDirectory);
-            watcher.Run();
+            if (configuration.WorkflowMode != UrielWorkflowMode.MovieMode)
+            {
+                this.watcher = new ShaderFileWatcher(configuration.WatchDirectory);
+                watcher.Run();
+            }
+
+            this.renderLoop = new RenderLoop();
+            this.builder = new ShaderBuilder(ShaderZoo.BadShaderArguments());
+            this.FrameTracker = new FrameTracker();
+            this.ShaderBlobs = new BindingList<ShaderBlob>();
+
+            this.listener = new KeyPressListener();
+            this.tks = new TotalKeyState();
+            this.ki = new KeyInterpreter();
+
             InitializeComponent();
         }
 
@@ -73,6 +86,7 @@ namespace Uriel
         private const int StatusStripLabelWidth = 109;
         private const int StatusStripLabelHeight = 17;
 
+        // What is this????
         private const int ClientSizeWidthBuffer = 200;
 
         private void InitializeComponent()
@@ -82,97 +96,89 @@ namespace Uriel
             // RenderControl
             // 
 
-            this.RenderControl = new OpenGL.GlControl();
 
-            RenderControl.Animation = true;
-            RenderControl.AnimationTimer = false;
-            RenderControl.BackColor = System.Drawing.Color.DimGray;
-            RenderControl.ColorBits = ((uint)(24u));
-            RenderControl.DepthBits = ((uint)(0u));
-            RenderControl.Dock = System.Windows.Forms.DockStyle.Fill;
-            RenderControl.Location = new System.Drawing.Point(0, 0);
-            RenderControl.MultisampleBits = ((uint)(0u));
-            RenderControl.Name = "RenderControl";
-            RenderControl.Size = new System.Drawing.Size(configuration.Length, configuration.Height);
-            RenderControl.StencilBits = ((uint)(0u));
-            RenderControl.TabIndex = 0;
+            this.RenderControl = BuildGLControl();
+            this.Controls.Add(this.RenderControl);
 
-            RenderControl.KeyDown += listener.KeyDown;
-            RenderControl.KeyUp += listener.KeyUp;
+            if (this.configuration.WorkflowMode == UrielWorkflowMode.EditorMode)
+            {
 
-            // Label
+                // Add keypress listeners to the RenderControl for Keystate Monitoring
+                RenderControl.KeyDown += listener.KeyDown;
+                RenderControl.KeyUp += listener.KeyUp;
 
-            this.StatusStrip = new StatusStrip();
+                // StatusStrip
 
-            StatusStrip.BackColor = System.Drawing.Color.LightGray;
-            StatusStrip.Dock = System.Windows.Forms.DockStyle.Bottom;
-            StatusStrip.Name = "StatusStrip";
-            StatusStrip.SizingGrip = false;
-            FpsLabel = new System.Windows.Forms.ToolStripStatusLabel();
-            U_timeLabel = new System.Windows.Forms.ToolStripStatusLabel();
-            KeyState = new System.Windows.Forms.ToolStripStatusLabel();
+                this.StatusStrip = new StatusStrip();
 
-            StatusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-                FpsLabel,
-                new ToolStripSeparator(),
-                U_timeLabel,
-                new ToolStripSeparator(),
-                KeyState
-            });
+                StatusStrip.BackColor = System.Drawing.Color.LightGray;
+                StatusStrip.Dock = System.Windows.Forms.DockStyle.Bottom;
+                StatusStrip.Name = "StatusStrip";
+                StatusStrip.SizingGrip = false;
+                FpsLabel = new System.Windows.Forms.ToolStripStatusLabel();
+                U_timeLabel = new System.Windows.Forms.ToolStripStatusLabel();
+                KeyState = new System.Windows.Forms.ToolStripStatusLabel();
 
-            FpsLabel.Name = "fpsLabel";
-            FpsLabel.Size = new System.Drawing.Size(StatusStripLabelWidth, StatusStripLabelHeight);
-            FpsLabel.Text = "---";
+                StatusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+                    FpsLabel,
+                    new ToolStripSeparator(),
+                    U_timeLabel,
+                    new ToolStripSeparator(),
+                    KeyState
+                });
 
-            U_timeLabel.Name = "u_timeLabel";
-            U_timeLabel.Size = new System.Drawing.Size(StatusStripLabelWidth, StatusStripLabelHeight);
-            U_timeLabel.Text = "---";
+                FpsLabel.Name = "fpsLabel";
+                FpsLabel.Size = new System.Drawing.Size(StatusStripLabelWidth, StatusStripLabelHeight);
+                FpsLabel.Text = "---";
 
-            KeyState.Name = "KeyState";
-            KeyState.Size = new System.Drawing.Size(StatusStripLabelWidth, StatusStripLabelHeight);
-            KeyState.Text = "---";
+                U_timeLabel.Name = "u_timeLabel";
+                U_timeLabel.Size = new System.Drawing.Size(StatusStripLabelWidth, StatusStripLabelHeight);
+                U_timeLabel.Text = "---";
 
-            // ListBar
+                KeyState.Name = "KeyState";
+                KeyState.Size = new System.Drawing.Size(StatusStripLabelWidth, StatusStripLabelHeight);
+                KeyState.Text = "---";
 
-            LeftPanel = new Panel();
-            LeftPanel.Dock = DockStyle.Left;
-            LeftPanel.Width = LEFT_PANEL_WIDTH;
-
-            ShaderSelector = new ListBox();
-
-            LeftPanel.Controls.Add(ShaderSelector);
-
-            ShaderSelector.Width = LEFT_PANEL_WIDTH;
-            ShaderSelector.Height = LEFT_SUBPANEL_HEIGHT;
-            ShaderSelector.DataSource = this.ShaderBlobs;
-            ShaderSelector.DisplayMember = "DisplayName";
-
-            ErrorBox = new TextBox();
-
-            LeftPanel.Controls.Add(ErrorBox);
-
-            ErrorBox.Multiline = true;
-            ErrorBox.ReadOnly = true;
-
-            ErrorBox.Dock = DockStyle.Bottom;
-            ErrorBox.Width = LEFT_PANEL_WIDTH;
-            ErrorBox.Height = LEFT_SUBPANEL_HEIGHT;
-
-            FrameTracker = new FrameTracker();
+                this.Controls.Add(this.StatusStrip);
 
 
-            this.RenderControl.ContextCreated += new EventHandler<GlControlEventArgs>(this.RenderControl_ContextCreated);
-            this.RenderControl.ContextDestroying += new EventHandler<GlControlEventArgs>(this.RenderControl_ContextDestroying);
-            this.RenderControl.Render += new EventHandler<GlControlEventArgs>(this.RenderControl_Render);
-            this.RenderControl.ContextUpdate += new EventHandler<GlControlEventArgs>(this.RenderControl_ContextUpdate);
+                // LeftPanel
+
+                LeftPanel = new Panel();
+                LeftPanel.Dock = DockStyle.Left;
+                LeftPanel.Width = LEFT_PANEL_WIDTH;
+
+                ShaderSelector = new ListBox();
+
+                LeftPanel.Controls.Add(ShaderSelector);
+
+                ShaderSelector.Width = LEFT_PANEL_WIDTH;
+                ShaderSelector.Height = LEFT_SUBPANEL_HEIGHT;
+                ShaderSelector.DataSource = this.ShaderBlobs;
+                ShaderSelector.DisplayMember = "DisplayName";
+
+                ErrorBox = new TextBox();
+
+                ErrorBox.Multiline = true;
+                ErrorBox.ReadOnly = true;
+
+                ErrorBox.Dock = DockStyle.Bottom;
+                ErrorBox.Width = LEFT_PANEL_WIDTH;
+                ErrorBox.Height = LEFT_SUBPANEL_HEIGHT;
+
+                LeftPanel.Controls.Add(ErrorBox);
+
+                this.Controls.Add(this.LeftPanel);
+            }
 
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
 
             // Set the MaximizeBox to false to remove the maximize box.
-            this.MaximizeBox = false;
+            this.MaximizeBox = true;
+            this.Resize += new EventHandler(UrielForm_Resize);
 
             // Set the MinimizeBox to false to remove the minimize box.
-            this.MinimizeBox = false;
+            this.MinimizeBox = true;
 
             // Set the start position of the form to the center of the screen.
             this.StartPosition = FormStartPosition.CenterScreen;
@@ -182,17 +188,59 @@ namespace Uriel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = AutoScaleMode.None;
-            this.ClientSize = new System.Drawing.Size(this.configuration.Length + ClientSizeWidthBuffer, this.configuration.Height);
-            this.Controls.Add(this.RenderControl);
-            this.Controls.Add(this.StatusStrip);
-            this.Controls.Add(this.LeftPanel);
+
+            if (this.configuration.WorkflowMode == UrielWorkflowMode.EditorMode)
+            {
+                this.ClientSize = new System.Drawing.Size(this.configuration.ViewPortLength + LEFT_PANEL_WIDTH, this.configuration.ViewPortHeight);
+            }
+            else
+            {
+                this.ClientSize = new System.Drawing.Size(this.configuration.ViewPortLength, this.configuration.ViewPortHeight);
+            }
+
             this.Name = "Uriel";
-            this.Text = "Uriel";
+            this.Text = String.Format("Uriel - {0}", this.configuration.WorkflowMode);
 
             this.ResumeLayout(false); // ?
+        }
 
-            this.renderLoop = new RenderLoop(this.configuration.Length, this.configuration.Height);
-            this.builder = new ShaderBuilder(ShaderZoo.BadShaderArguments());
+        private GlControl BuildGLControl()
+        {
+            StaticLogger.Logger.Debug("Building RenderControl GlControl");
+
+            GlControl newRenderControl = new OpenGL.GlControl();
+
+            newRenderControl.Animation = true;
+            newRenderControl.AnimationTimer = false;
+            newRenderControl.BackColor = System.Drawing.Color.DimGray;
+            newRenderControl.ColorBits = ((uint)(24u));
+            newRenderControl.DepthBits = ((uint)(0u));
+            newRenderControl.Dock = System.Windows.Forms.DockStyle.Fill;
+            newRenderControl.Location = new System.Drawing.Point(0, 0);
+            newRenderControl.MultisampleBits = ((uint)(0u));
+            newRenderControl.Name = "RenderControl";
+            newRenderControl.Size = this.Size;
+            newRenderControl.StencilBits = ((uint)(0u));
+            newRenderControl.TabIndex = 0;
+
+            newRenderControl.ContextCreated += new EventHandler<GlControlEventArgs>(this.RenderControl_ContextCreated);
+            newRenderControl.ContextDestroying += new EventHandler<GlControlEventArgs>(this.RenderControl_ContextDestroying);
+            newRenderControl.Render += new EventHandler<GlControlEventArgs>(this.RenderControl_Render);
+            newRenderControl.ContextUpdate += new EventHandler<GlControlEventArgs>(this.RenderControl_ContextUpdate);
+
+            StaticLogger.Logger.Debug("Done building RenderControl GlControl");
+
+            return newRenderControl;
+        }
+
+        private void RegenerateGlControl()
+        {
+            this.SuspendLayout();
+            this.RenderControl.Animation = false;
+            this.Controls.Remove(this.RenderControl);
+            this.RenderControl = BuildGLControl();
+            this.Controls.Add(this.RenderControl);
+            this.ResumeLayout();
         }
 
         private void RefreshShaderSelector(object sender, EventArgs e)
@@ -228,12 +276,15 @@ namespace Uriel
 
         private void RenderControl_ContextUpdate(object sender, GlControlEventArgs e)
         {
-            // Nothing - what does this mean?
         }
 
         private void RenderControl_ContextDestroying(object sender, GlControlEventArgs e)
         {
             Destroy();
+        }
+
+        private void UrielForm_Resize(object sender, EventArgs e)
+        {
         }
 
         #endregion
@@ -309,6 +360,12 @@ namespace Uriel
 
         private void Loop()
         {
+            //if (FrameTracker.frameCount % 1000 == 0 && FrameTracker.frameCount != 0)
+            //{
+            //    StaticLogger.Logger.Debug("Regenerating.");
+            //    RegenerateGlControl();
+            //}
+
             if (this.configuration.WorkflowMode == UrielWorkflowMode.EditorMode)
             {
                 CreateNewShaderAndSelect();
@@ -325,7 +382,7 @@ namespace Uriel
                 UpdateKeys();
             }
 
-            Vertex2f resolution = new Vertex2f(configuration.Length, configuration.Height);
+            Vertex2f resolution = new Vertex2f(this.Size.Width, this.Size.Height);
 
             UniformValues uniforms = new UniformValues()
             {
@@ -335,7 +392,7 @@ namespace Uriel
                 CursorPosition = this.tks.Position
             };
 
-            renderLoop.Render(this.CurrentShader, uniforms);
+            renderLoop.Render(this.CurrentShader, uniforms, this.RenderControl.Size);
 
             this.FrameTracker.EndFrame();
             if (this.configuration.WorkflowMode == UrielWorkflowMode.EditorMode)
