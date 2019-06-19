@@ -54,6 +54,14 @@
 
 ## Advanced Features
 
+## Advanced Pre-Req - Consistent Uniform handling (Generic Uniforms)
+* Current Uniform system is specific not generic
+* Requires adding new uniform concept across many classes per new uniform
+* Current system Does not distinguish between 
+** Required/NonRequired Uniforms (important for testing)
+** Uniforms that are consumed in the shader versus 'compiled out'
+** TODO: Dynamic verus 'Constant' uniforms? Static Uniforms not updated per frame?
+
 ## Movie Mode - Export
 * Export as video file
 
