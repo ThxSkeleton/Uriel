@@ -1,5 +1,6 @@
 # Shaders to create
 
+
 ## A Floating Sphere
 ### Baby's first Raymarch
 
@@ -19,4 +20,15 @@
 ### Teal color scheme
 
 ## Stream Starting Waveform
-### Chaotic Waveform with "Stream Starting" Texture Mask\
+### Chaotic Waveform with "Stream Starting" Texture Mask
+
+## Stream Starting Ocean Text
+### Word Geometry underneath choppy waves
+
+## A Skull in a tub filling up with lava
+
+## A butterfly with irridencense
+
+## Stained Glass Devil Tarot Card
+
+## Stained Glass Uriel Angel with color changing regions
